@@ -1,0 +1,315 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #070a10;
+    color: white;
+}
+
+
+/* Navigation */
+
+nav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 8%;
+
+    background-color: #080b12;
+    border-bottom: 1px solid #1d293b;
+}
+
+.logo {
+    font-size: 20px;
+}
+
+.logo span {
+    background-color: #6875ff;
+    padding: 10px;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+.logo b {
+    color: #2196ff;
+    font-weight: normal;
+}
+
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a,
+.nav-buttons a {
+    color: #9aa7ba;
+    text-decoration: none;
+}
+
+.nav-links a:hover,
+.nav-buttons a:hover {
+    color: #2196ff;
+}
+
+.nav-links .active {
+    color: #2196ff;
+}
+
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-buttons button {
+    background-color: #287cf0;
+    color: white;
+
+    border: none;
+    padding: 12px 22px;
+
+    border-radius: 7px;
+
+    font-weight: bold;
+}
+
+
+/* Hero */
+
+.hero {
+    text-align: center;
+
+    padding: 100px 20px 50px;
+
+    background: linear-gradient(
+        rgba(7, 10, 16, 0.9),
+        rgba(7, 10, 16, 1)
+    );
+}
+
+.season {
+    color: #2695ff;
+    border: 1px solid #1c4e7a;
+
+    display: inline-block;
+
+    padding: 10px 20px;
+
+    border-radius: 20px;
+}
+
+
+.hero h1 {
+    font-size: 60px;
+    font-weight: normal;
+
+    margin: 35px 0 20px;
+}
+
+.hero h1 span {
+    color: #4b8fff;
+}
+
+
+.description {
+    color: #9aa7ba;
+
+    font-size: 20px;
+
+    max-width: 650px;
+
+    margin: auto;
+
+    line-height: 1.6;
+}
+
+
+/* Hero Buttons */
+
+.hero-buttons {
+    margin-top: 35px;
+}
+
+.hero-buttons button {
+    padding: 16px 30px;
+
+    margin: 8px;
+
+    border-radius: 8px;
+
+    border: none;
+
+    background-color: #287cf0;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+}
+
+.hero-buttons .outline {
+    background-color: transparent;
+
+    border: 1px solid #28609a;
+
+    color: #2995ff;
+}
+
+
+/* Statistics */
+
+.stats {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 100px;
+
+    padding: 40px 20px;
+
+    text-align: center;
+}
+
+.stats h2 {
+    color: #268cff;
+
+    font-size: 28px;
+
+    margin-bottom: 5px;
+}
+
+.stats p {
+    color: #78879d;
+}
+
+
+/* Tournament Section */
+
+.tournaments {
+    max-width: 1100px;
+
+    margin: 60px auto;
+
+    padding: 20px;
+}
+
+.tournaments > h2 {
+    font-size: 30px;
+
+    font-weight: normal;
+
+    margin-bottom: 30px;
+}
+
+
+/* Cards */
+
+.cards {
+    display: flex;
+
+    gap: 25px;
+}
+
+.card {
+    flex: 1;
+
+    background-color: #111827;
+
+    border: 1px solid #26354b;
+
+    border-radius: 12px;
+
+    padding: 25px;
+}
+
+.card:hover {
+    border-color: #287cf0;
+}
+
+
+.game {
+    color: #2995ff;
+
+    font-size: 13px;
+
+    font-weight: bold;
+}
+
+
+.card h3 {
+    font-size: 20px;
+
+    margin: 25px 0;
+}
+
+.card p {
+    color: #8b9ab0;
+}
+
+.card b {
+    color: #2995ff;
+}
+
+
+.card button {
+    margin-top: 15px;
+
+    padding: 10px 15px;
+
+    background-color: #287cf0;
+
+    border: none;
+
+    border-radius: 6px;
+
+    color: white;
+}
+
+
+/* Footer */
+
+footer {
+    text-align: center;
+
+    padding: 30px;
+
+    border-top: 1px solid #1d293b;
+
+    color: #66758a;
+}
+
+
+/* Mobile */
+
+@media (max-width: 800px) {
+
+    nav {
+        padding: 20px;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .hero h1 {
+        font-size: 40px;
+    }
+
+    .stats {
+        flex-wrap: wrap;
+        gap: 40px;
+    }
+
+    .cards {
+        flex-direction: column;
+    }
+
+}
