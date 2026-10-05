@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tournaments | GAME Arena</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body data-root="">
+    <nav id="nav"></nav>
+    <main class="wrap">
+        <h1>Tournaments</h1>
+        <div class="filters"><input id="q" placeholder="Search tournaments"><select id="game">
+                <option>All</option>
+                <option>Valorant</option>
+                <option>BGMI</option>
+                <option>Counter-Strike 2</option>
+            </select><select id="status">
+                <option>All</option>
+                <option>Upcoming</option>
+                <option>Open</option>
+                <option>Live</option>
+                <option>Completed</option>
+            </select><select id="sort">
+                <option value="date">Date</option>
+                <option value="prize">Prize pool</option>
+                <option value="reg">Registrations</option>
+            </select></div>
+        <div class="grid" id="list"></div>
+    </main>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/tournaments.js"></script>
+</body>
+
+</html>

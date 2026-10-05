@@ -1,141 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTP Arena</title>
 
-    <link rel="stylesheet" href="style.css">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Home | GAME Arena</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
-
-    <!-- Navigation Bar -->
-    <nav>
-        <div class="logo">
-            <span>✦</span>
-            GAME <b>ARENA</b>
-        </div>
-
-        <div class="nav-links">
-            <a href="#" class="active">Home</a>
-            <a href="#">Tournaments</a>
-            <a href="#">Leaderboard</a>
-            <a href="#">Schedule</a>
-            <a href="#">Live View</a>
-        </div>
-
-        <div class="nav-buttons">
-            <a href="#">Login</a>
-            <button>Register</button>
-        </div>
-    </nav>
-
-
-    <!-- Hero Section -->
+<body data-root="">
+    <nav id="nav"></nav>
     <section class="hero">
-
-        <p class="season">● Season 3 Now Live — Register for Valorant Champions Cup</p>
-
-        <h1>
-            Compete. Conquer.
-            <br>
-            <span>Climb the Leaderboard.</span>
-        </h1>
-
-        <p class="description">
-            Discover gaming tournaments, build your team,
-            compete in matches and track your journey to the top.
-        </p>
-
-        <div class="hero-buttons">
-            <button>Explore Tournaments</button>
-            <button class="outline">Create a Team</button>
-        </div>
-
+        <h1>Compete. Conquer. Climb the Leaderboard.</h1>
+        <p class="muted">GAME Arena hosts Valorant, BGMI and CS2 tournaments. Join, play and rise.</p>
+        <div class="row"><a class="btn" href="tournaments.html">Explore Tournaments</a><a class="btn ghost"
+                href="login.html">Register Now</a></div>
     </section>
-
-
-    <!-- Statistics -->
-    <section class="stats">
-
-        <div>
-            <h2>50+</h2>
-            <p>Tournaments</p>
-        </div>
-
-        <div>
-            <h2>2,400+</h2>
-            <p>Players</p>
-        </div>
-
-        <div>
-            <h2>₹5L+</h2>
-            <p>Prize Pool</p>
-        </div>
-
-        <div>
-            <h2>120+</h2>
-            <p>Teams</p>
-        </div>
-
-    </section>
-
-
-    <!-- Tournaments -->
-    <section class="tournaments">
-
-        <h2>Upcoming Tournaments</h2>
-
-        <div class="cards">
-
-            <div class="card">
-                <p class="game">VALORANT</p>
-
-                <h3>Valorant Champions Cup S3</h3>
-
-                <p>Oct 15 - 20, 2026</p>
-
-                <p>Prize Pool: <b>₹1,00,000</b></p>
-
-                <button>View Tournament</button>
-            </div>
-
-
-            <div class="card">
-                <p class="game">BGMI</p>
-
-                <h3>BGMI Pro League Fall</h3>
-
-                <p>Nov 1 - 5, 2026</p>
-
-                <p>Prize Pool: <b>₹75,000</b></p>
-
-                <button>View Tournament</button>
-            </div>
-
-
-            <div class="card">
-                <p class="game">CS2</p>
-
-                <h3>Counter-Strike 2 Invitational</h3>
-
-                <p>Sep 28 - 30, 2026</p>
-
-                <p>Prize Pool: <b>₹50,000</b></p>
-
-                <button>View Tournament</button>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- Footer -->
-    <footer>
-        <p>© 2026 GTP Arena. All rights reserved.</p>
-    </footer>
-
+    <main class="wrap">
+        <h2>Featured tournaments</h2>
+        <div class="grid" id="feat"></div>
+    </main>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>$("#feat").innerHTML = load("tournaments").filter(t => t.status !== "Completed").slice(0, 3).map(card).join("")</script>
 </body>
+
 </html>
