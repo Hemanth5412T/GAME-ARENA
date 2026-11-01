@@ -183,6 +183,134 @@
     transition: border-color .25s, box-shadow .25s, transform .25s
 }
 
+.password-control {
+    position: relative;
+    width: 100%
+}
+
+.password-control input {
+    padding-right: 50px
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    place-items: center;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #192a5680;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: color .2s, background .2s
+}
+
+.toggle-password:hover,
+.toggle-password:focus-visible {
+    color: var(--n);
+    background: #192a5610
+}
+
+.toggle-password:focus-visible {
+    outline: 2px solid var(--c);
+    outline-offset: 1px
+}
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.toggle-password .eye-slash { display: none }
+.toggle-password[aria-pressed="true"] .eye-slash { display: block }
+
+.fld.has-error input,
+.fld.has-error select {
+    border-color: #d98782;
+    box-shadow: 0 0 0 2px #eda6a333
+}
+
+.form-error {
+    display: none;
+    color: #ffc2bd;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.35
+}
+
+.form-error:not(:empty) { display: block }
+
+.terms-field {
+    display: grid;
+    gap: 3px
+}
+
+.terms-field>span {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px
+}
+
+.terms-field input { margin-top: 6px }
+.terms-field.has-error input { outline: 2px solid #d98782; outline-offset: 2px }
+
+.form-success {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+    margin-bottom: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #a9d9b766;
+    background: #1d6b4352;
+    color: #e5f5e9;
+    font-size: .9rem;
+    line-height: 1.4
+}
+
+.form-success.is-visible {
+    display: flex;
+    animation: success-notice-in 350ms ease both
+}
+
+.form-success [data-success-copy] { display: block }
+
+.form-success small {
+    display: block;
+    margin-top: 3px;
+    color: #d5eadb;
+    font-size: .78rem
+}
+
+.success-check {
+    display: grid;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 50%;
+    background: #bde5c8;
+    color: #173c2b;
+    font-size: .8rem;
+    font-weight: 800
+}
+
+@keyframes success-notice-in {
+    from { opacity: 0; transform: translateY(8px) }
+    to { opacity: 1; transform: translateY(0) }
+}
+
 .fld input:hover,
 .fld select:hover { border-color: var(--n) }
 .fld input:focus,

@@ -28,23 +28,22 @@
         </div>
     </aside>
     <main>
-        <form class="fm auth-card auth-form" data-form="register" action="login.html" method="get" aria-hidden="true" inert>
+        <form class="fm auth-card auth-form" data-form="register" action="login.html" method="get" aria-hidden="true" inert novalidate>
             <h2>Create account</h2>
             <p>Join in under a minute. Use the demo login afterwards.</p>
-            <label class="fld">Username<input type="text" required minlength="3" placeholder="ShadowKira"></label>
-            <label class="fld">Email<input type="email" required placeholder="you@email.com"></label>
-            <label class="fld">Password<input type="password" required minlength="8"
-                    placeholder="At least 8 characters"></label>
-            <label class="fld">Confirm password<input type="password" required minlength="8"
-                    placeholder="Repeat password"></label>
-            <label class="fld">Preferred game<select required>
+            <label class="fld">Username<input id="reg-username" name="username" type="text" required minlength="3" placeholder="ShadowKira" autocomplete="username" aria-describedby="reg-username-error"><small class="form-error" id="reg-username-error"></small></label>
+            <label class="fld">Email<input id="reg-email" name="email" type="email" required placeholder="you@email.com" autocomplete="email" aria-describedby="reg-email-error"><small class="form-error" id="reg-email-error"></small></label>
+            <label class="fld">Password<div class="password-control"><input id="reg-password" name="password" type="password" required minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Use at least 8 characters with an uppercase letter, a lowercase letter, and a number." placeholder="At least 8 characters" autocomplete="new-password" aria-describedby="reg-password-error"><button class="toggle-password" type="button" data-password-toggle aria-label="Show password" aria-controls="reg-password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="m4 4 16 16"></path></svg></button></div><small class="form-error" id="reg-password-error"></small></label>
+            <label class="fld">Confirm password<div class="password-control"><input id="reg-confirm-password" name="confirm-password" type="password" required minlength="8" placeholder="Repeat password" autocomplete="new-password" aria-describedby="reg-confirm-password-error"><button class="toggle-password" type="button" data-password-toggle aria-label="Show password" aria-controls="reg-confirm-password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="m4 4 16 16"></path></svg></button></div><small class="form-error" id="reg-confirm-password-error"></small></label>
+            <label class="fld">Preferred game<select id="reg-game" name="game" required aria-describedby="reg-game-error">
                     <option value="">Choose a game</option>
                     <option>Valorant</option>
                     <option>BGMI</option>
                     <option>Counter-Strike 2</option>
-                </select></label>
-            <div class="row"><label><input type="checkbox" required> I accept the terms and conditions</label></div>
+                </select><small class="form-error" id="reg-game-error"></small></label>
+            <div class="row terms-row"><label class="terms-field"><span><input id="reg-terms" name="terms" type="checkbox" required aria-describedby="reg-terms-error"> I accept the terms and conditions</span><small class="form-error" id="reg-terms-error"></small></label></div>
             <button class="btn p" type="submit">Create account</button>
+            <p class="form-success" role="status" aria-live="polite"><span class="success-check" aria-hidden="true">✓</span><span><strong data-success-copy></strong><small>Demo only. Your details are not stored.</small></span></p>
             <p class="alt"><a class="auth-switch" href="login.html" data-switch="login">Log in</a></p>
         </form>
         <form class="fm auth-card auth-form" data-form="login" action="profile.html" method="get" aria-hidden="true" inert>
@@ -53,8 +52,8 @@
             <div class="demo"><b>Demo account</b><br>Email: demo@gamearena.gg<br>Password: Arena@2026</div>
             <label class="fld">Email or username<input type="text" required pattern="demo@gamearena\.gg|ShadowKira"
                     title="Use the demo account: demo@gamearena.gg" autocomplete="username" placeholder="demo@gamearena.gg"></label>
-            <label class="fld">Password<input type="password" required pattern="Arena@2026"
-                    title="Use the demo password: Arena@2026" autocomplete="current-password" placeholder="Your password"></label>
+            <label class="fld">Password<div class="password-control"><input id="login-password" type="password" required pattern="Arena@2026"
+                    title="Use the demo password: Arena@2026" autocomplete="current-password" placeholder="Your password"><button class="toggle-password" type="button" data-password-toggle aria-label="Show password" aria-controls="login-password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="m4 4 16 16"></path></svg></button></div></label>
             <div class="row"><label><input type="checkbox"> Remember me</label><a href="mailto:support@gamearena.gg">Forgot password?</a></div>
             <button class="btn p" type="submit">Log in</button>
             <p class="alt"><a class="auth-switch" href="register.html" data-switch="register">Create an account</a></p>
