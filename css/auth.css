@@ -1,18 +1,34 @@
 .au {
-    min-height: 100vh;
+    --auth-duration: 800ms;
+    --auth-ease: cubic-bezier(.77, 0, .175, 1);
+    position: relative;
     display: grid;
-    grid-template-columns: 1fr 1fr
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    overflow-x: clip;
+    background: var(--b)
+}
+
+.au aside,
+.au main {
+    grid-row: 1;
+    min-width: 0;
+    min-height: 100vh;
+    transition: transform var(--auth-duration) var(--auth-ease);
+    will-change: transform
 }
 
 .au aside {
     position: relative;
-    background: var(--n);
-    color: var(--b);
-    padding: 48px;
+    z-index: 2;
+    grid-column: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow: hidden
+    overflow: hidden;
+    padding: 48px;
+    background: var(--n);
+    color: var(--b)
 }
 
 .au aside .shape {
@@ -21,27 +37,132 @@
 }
 
 .au aside h1 {
-    font-size: clamp(2.6rem, 5vw, 4.4rem);
-    position: relative
+    position: relative;
+    font-size: clamp(2.6rem, 5vw, 4.4rem)
+}
+
+.auth-branding,
+.auth-promo {
+    flex: 1;
+    min-height: 0
+}
+
+.auth-branding {
+    display: grid;
+    place-items: center
+}
+
+.auth-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    font: 800 clamp(2rem, 3.4vw, 3.2rem)/1 var(--d);
+    letter-spacing: .06em
+}
+
+.au .auth-brand img {
+    display: block;
+    width: clamp(84px, 9vw, 124px);
+    height: auto;
+    flex: none;
+    transition: none
+}
+
+.au .auth-brand:hover img {
+    transform: none
+}
+
+.auth-promo {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between
+}
+
+.au.spin-clockwise .auth-brand img {
+    animation: auth-spin-clockwise var(--auth-duration) cubic-bezier(.77, 0, .175, 1) both
+}
+
+.au.spin-counterclockwise .auth-brand img {
+    animation: auth-spin-counterclockwise var(--auth-duration) cubic-bezier(.77, 0, .175, 1) both
+}
+
+@keyframes auth-spin-clockwise {
+    from { transform: rotate(0deg) }
+    to { transform: rotate(-360deg) }
+}
+
+@keyframes auth-spin-counterclockwise {
+    from { transform: rotate(0deg) }
+    to { transform: rotate(360deg) }
 }
 
 .au main {
+    position: relative;
+    z-index: 1;
+    grid-column: 2;
     display: grid;
     place-items: center;
-    padding: 40px 24px
+    padding: 40px 24px;
+    background: var(--b)
 }
+
+.au main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 50% at 90% 0, #fcfbfb 0, #0000 70%),
+        repeating-linear-gradient(135deg, #192a5612 0 2px, #0000 2px 28px);
+    opacity: 0;
+    transition: opacity 1400ms ease
+}
+
+.au.pattern-visible main::before {
+    opacity: 1
+}
+
+.au[data-mode="register"] aside { transform: translateX(100%) }
+.au[data-mode="register"] main { transform: translateX(-100%) }
 
 .fm {
-    width: min(440px, 100%)
+    width: min(500px, 100%)
 }
 
-.fm h2 {
-    margin-bottom: 8px
+.fm.auth-card {
+    padding: 36px;
+    border: 1px solid #fcfbfb30;
+    border-radius: 24px;
+    background: var(--n);
+    color: var(--b);
+    box-shadow: 0 24px 60px -28px #192a5680
 }
 
-.fm>p {
-    margin-bottom: 24px
+.auth-form {
+    grid-area: 1 / 1;
+    z-index: 1;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(28px);
+    pointer-events: none;
+    transition: opacity 280ms ease, transform 420ms var(--auth-ease), visibility 0s linear 420ms
 }
+
+.auth-form.is-active {
+    position: relative;
+    z-index: 1;
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    transition: opacity 350ms ease 250ms, transform 500ms var(--auth-ease) 200ms, visibility 0s
+}
+
+.fm h2 { margin-bottom: 8px }
+.fm>p { margin-bottom: 24px }
 
 .fld {
     display: grid;
@@ -52,6 +173,7 @@
 
 .fld input,
 .fld select {
+    width: 100%;
     padding: 14px 16px;
     border: 2px solid #192a5633;
     border-radius: 12px;
@@ -62,10 +184,7 @@
 }
 
 .fld input:hover,
-.fld select:hover {
-    border-color: var(--n)
-}
-
+.fld select:hover { border-color: var(--n) }
 .fld input:focus,
 .fld select:focus {
     outline: none;
@@ -73,10 +192,7 @@
     box-shadow: 0 0 0 4px var(--c);
     transform: translateY(-2px)
 }
-
-.fld input:user-invalid {
-    border-color: #a33
-}
+.fld input:user-invalid { border-color: #a33 }
 
 .row {
     display: flex;
@@ -86,30 +202,65 @@
     margin-bottom: 20px;
     font-size: .92rem
 }
-
-.row a {
-    text-decoration: underline
-}
-
-.fm .btn {
-    width: 100%
-}
+.row a { text-decoration: underline }
+.fm .btn { width: 100% }
+.fm.auth-card .btn.p { background: var(--b); color: var(--n) }
+.fm.auth-card .btn.p:hover { background: var(--c) }
 
 .demo {
-    background: var(--w);
-    border-left: 6px solid var(--c);
-    padding: 14px 16px;
-    border-radius: 12px;
     margin-bottom: 22px;
+    padding: 14px 16px;
+    border-left: 6px solid var(--c);
+    border-radius: 12px;
+    background: var(--w);
+    color: var(--n);
     font-size: .92rem
 }
 
-.alt {
-    margin-top: 20px;
-    text-align: center
+.alt { margin-top: 20px; text-align: center }
+.alt .auth-switch {
+    display: block;
+    padding: 12px 20px;
+    border: 2px solid var(--b);
+    border-radius: 999px;
+    background: var(--b);
+    color: var(--n);
+    font-weight: 700;
+    text-decoration: none;
+    transition: color .25s, background .25s, transform .25s
+}
+.alt .auth-switch:hover { background: var(--c); transform: translateY(-2px) }
+.alt .auth-switch:focus-visible { outline: 3px solid var(--c); outline-offset: 3px }
+
+@media (max-width: 768px) {
+    .au {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(220px, 30vh) auto;
+        overflow-x: hidden
+    }
+    .au aside,
+    .au main {
+        grid-column: 1;
+        grid-row: auto;
+        min-height: 0;
+        transform: none !important
+    }
+    .au aside { grid-row: 1; padding: 28px; gap: 40px }
+    .au main { grid-row: 2; padding: 32px 20px 48px }
+    .auth-form { transform: translateY(16px) }
+    .auth-form.is-active { transform: translateY(0) }
 }
 
-.alt a {
-    font-weight: 700;
-    text-decoration: underline
+@media (max-width: 480px) {
+    .fm.auth-card { padding: 26px 22px }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .au aside,
+    .au main,
+    .auth-form,
+    .auth-form.is-active { transition-duration: 1ms; transition-delay: 0ms }
+
+    .au.spin-clockwise .auth-brand img,
+    .au.spin-counterclockwise .auth-brand img { animation-duration: 1ms }
 }

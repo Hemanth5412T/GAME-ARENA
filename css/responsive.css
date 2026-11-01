@@ -39,15 +39,6 @@
         padding: 44px 0
     }
 
-    .au {
-        grid-template-columns: 1fr
-    }
-
-    .au aside {
-        padding: 28px;
-        gap: 40px
-    }
-
     .bn.big {
         height: 200px
     }
