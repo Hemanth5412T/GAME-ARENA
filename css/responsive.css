@@ -1,0 +1,94 @@
+@media(max-width:1024px) {
+
+    .hero .w,
+    .two,
+    .foot .fg {
+        grid-template-columns: 1fr
+    }
+
+    .hw {
+        width: min(320px, 80%)
+    }
+
+    .sticky {
+        position: static
+    }
+
+    .hero {
+        padding-bottom: 64px
+    }
+}
+
+@media(max-width:768px) {
+    .nav .w {
+        flex-wrap: wrap;
+        padding: 10px 0;
+        gap: 6px
+    }
+
+    .nav nav {
+        width: 100%;
+        overflow-x: auto
+    }
+
+    .nav li a {
+        white-space: nowrap
+    }
+
+    section {
+        padding: 44px 0
+    }
+
+    .au {
+        grid-template-columns: 1fr
+    }
+
+    .au aside {
+        padding: 28px;
+        gap: 40px
+    }
+
+    .bn.big {
+        height: 200px
+    }
+
+    .bn.big:after {
+        font-size: 4.6rem
+    }
+}
+
+@media(max-width:480px) {
+    .w {
+        width: calc(100% - 32px)
+    }
+
+    .g {
+        grid-template-columns: 1fr
+    }
+
+    .hero {
+        padding-top: 36px
+    }
+
+    .btns .btn {
+        width: 100%;
+        text-align: center
+    }
+
+    .mr {
+        gap: 10px
+    }
+
+    .ph2 {
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .meta {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .stream .sb {
+        font-size: 1.1rem
+    }
+}

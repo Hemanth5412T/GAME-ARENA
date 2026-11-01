@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Leaderboard | GAME ARENA</title>
+    <link rel="icon" href="assets/logos/logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Figtree:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="w"><a class="brand" href="index.html"><img src="assets/logos/logo.svg" alt="" width="40"
+                    height="40">GAME ARENA</a>
+            <nav aria-label="Main">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="live.html">Live</a></li>
+                    <li><a href="leaderboard.html" aria-current="page">Leaderboard</a></li>
+                    <li><a href="search-events.html">Tournaments</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="activities.html">Activities</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="w">
+            <div class="ph in">
+                <h1>Leaderboard</h1>
+                <p>Global rankings across every game. Filter by game to see who leads each title.</p>
+            </div>
+            <section style="padding-top:24px">
+                <div class="fb rv">
+                    <p>Game</p>
+                    <div class="chips" role="radiogroup"><input type="radio" name="g" id="g-a" checked><label
+                            for="g-a">All games</label><input type="radio" name="g" id="g-v"><label
+                            for="g-v">Valorant</label><input type="radio" name="g" id="g-b"><label
+                            for="g-b">BGMI</label><input type="radio" name="g" id="g-c"><label for="g-c">Counter-Strike
+                            2</label></div>
+                    <p>Time period</p>
+                    <div class="chips" role="radiogroup"><input type="radio" name="p" id="p-w" checked><label
+                            for="p-w">This week</label><input type="radio" name="p" id="p-m"><label for="p-m">This
+                            month</label><input type="radio" name="p" id="p-all"><label for="p-all">All time</label>
+                    </div>
+                </div>
+                <div class="tw rv">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Team</th>
+                                <th>Matches</th>
+                                <th>Wins</th>
+                                <th>Win rate</th>
+                                <th>Points</th>
+                                <th>Profile</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="gv top">
+                                <td><span class="rk">1</span></td>
+                                <td><b>ZephyrX</b><br><small>Valorant</small></td>
+                                <td>Team Vanguard</td>
+                                <td>312</td>
+                                <td>221</td>
+                                <td>70.8%<div class="bar"><i style="--p:70.8%"></i></div>
+                                </td>
+                                <td><b>11,240</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gc top">
+                                <td><span class="rk">2</span></td>
+                                <td><b>NightOwl</b><br><small>Counter-Strike 2</small></td>
+                                <td>Orion Gaming</td>
+                                <td>287</td>
+                                <td>198</td>
+                                <td>69.0%<div class="bar"><i style="--p:69%"></i></div>
+                                </td>
+                                <td><b>10,115</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gb top">
+                                <td><span class="rk">3</span></td>
+                                <td><b>Valkyrie07</b><br><small>BGMI</small></td>
+                                <td>Crimson Fang</td>
+                                <td>266</td>
+                                <td>181</td>
+                                <td>68.0%<div class="bar"><i style="--p:68%"></i></div>
+                                </td>
+                                <td><b>9,380</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gv">
+                                <td><span class="rk">4</span></td>
+                                <td><b>ShadowKira</b> <span class='tag t-l'>You</span><br><small>Valorant</small></td>
+                                <td>Nova Esports</td>
+                                <td>248</td>
+                                <td>163</td>
+                                <td>65.7%<div class="bar"><i style="--p:65.7%"></i></div>
+                                </td>
+                                <td><b>8,420</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gb">
+                                <td><span class="rk">5</span></td>
+                                <td><b>ZeroAarav</b><br><small>BGMI</small></td>
+                                <td>Titan Squad</td>
+                                <td>231</td>
+                                <td>148</td>
+                                <td>64.1%<div class="bar"><i style="--p:64.1%"></i></div>
+                                </td>
+                                <td><b>7,960</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gc">
+                                <td><span class="rk">6</span></td>
+                                <td><b>MysticRia</b><br><small>Counter-Strike 2</small></td>
+                                <td>Orion Gaming</td>
+                                <td>219</td>
+                                <td>137</td>
+                                <td>62.6%<div class="bar"><i style="--p:62.6%"></i></div>
+                                </td>
+                                <td><b>7,310</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gv">
+                                <td><span class="rk">7</span></td>
+                                <td><b>Hawk3ye</b><br><small>Valorant</small></td>
+                                <td>Hawkeye Gaming</td>
+                                <td>205</td>
+                                <td>126</td>
+                                <td>61.5%<div class="bar"><i style="--p:61.5%"></i></div>
+                                </td>
+                                <td><b>6,870</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                            <tr class="gb">
+                                <td><span class="rk">8</span></td>
+                                <td><b>PixelPriya</b><br><small>BGMI</small></td>
+                                <td>Crimson Fang</td>
+                                <td>198</td>
+                                <td>119</td>
+                                <td>60.1%<div class="bar"><i style="--p:60.1%"></i></div>
+                                </td>
+                                <td><b>6,415</b></td>
+                                <td><a class="btn o sm" href="profile.html">View</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+    <footer class="foot">
+        <div class="w">
+            <div class="fg rv">
+                <div><a class="brand" href="index.html"><img src="assets/logos/logo.svg" alt="" width="40"
+                            height="40">GAME ARENA</a>
+                    <p style="margin-top:12px;max-width:36ch">Find tournaments, watch live matches and track your climb.
+                    </p>
+                </div>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="live.html">Live</a></li>
+                    <li><a href="leaderboard.html">Leaderboard</a></li>
+                </ul>
+                <ul>
+                    <li><a href="search-events.html">Tournaments</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="activities.html">Activities</a></li>
+                    <li><a href="register.html">Create account</a></li>
+                </ul>
+            </div><small>Frontend prototype. All players, teams, scores and prizes are sample data.</small>
+        </div>
+    </footer>
+</body>
+
+</html>

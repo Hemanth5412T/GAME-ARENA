@@ -1,0 +1,115 @@
+.au {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr
+}
+
+.au aside {
+    position: relative;
+    background: var(--n);
+    color: var(--b);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden
+}
+
+.au aside .shape {
+    background: var(--c);
+    opacity: .18
+}
+
+.au aside h1 {
+    font-size: clamp(2.6rem, 5vw, 4.4rem);
+    position: relative
+}
+
+.au main {
+    display: grid;
+    place-items: center;
+    padding: 40px 24px
+}
+
+.fm {
+    width: min(440px, 100%)
+}
+
+.fm h2 {
+    margin-bottom: 8px
+}
+
+.fm>p {
+    margin-bottom: 24px
+}
+
+.fld {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-weight: 600
+}
+
+.fld input,
+.fld select {
+    padding: 14px 16px;
+    border: 2px solid #192a5633;
+    border-radius: 12px;
+    background: var(--w);
+    font: inherit;
+    color: var(--n);
+    transition: border-color .25s, box-shadow .25s, transform .25s
+}
+
+.fld input:hover,
+.fld select:hover {
+    border-color: var(--n)
+}
+
+.fld input:focus,
+.fld select:focus {
+    outline: none;
+    border-color: var(--n);
+    box-shadow: 0 0 0 4px var(--c);
+    transform: translateY(-2px)
+}
+
+.fld input:user-invalid {
+    border-color: #a33
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    font-size: .92rem
+}
+
+.row a {
+    text-decoration: underline
+}
+
+.fm .btn {
+    width: 100%
+}
+
+.demo {
+    background: var(--w);
+    border-left: 6px solid var(--c);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    font-size: .92rem
+}
+
+.alt {
+    margin-top: 20px;
+    text-align: center
+}
+
+.alt a {
+    font-weight: 700;
+    text-decoration: underline
+}

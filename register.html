@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Register | GAME ARENA</title>
+    <link rel="icon" href="assets/logos/logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Figtree:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+    <aside>
+        <div class="shape s1"></div><a class="brand" href="index.html"><img src="assets/logos/logo.svg" alt=""
+                width="40" height="40">GAME ARENA</a>
+        <h1 class="in">Your squad is waiting.</h1><small>Sample data. No real accounts are created.</small>
+    </aside>
+    <main>
+        <form class="fm in" action="login.html" method="get">
+            <h2>Create account</h2>
+            <p>Join in under a minute. Use the demo login afterwards.</p>
+            <label class="fld">Username<input type="text" required minlength="3" placeholder="ShadowKira"></label>
+            <label class="fld">Email<input type="email" required placeholder="you@email.com"></label>
+            <label class="fld">Password<input type="password" required minlength="8"
+                    placeholder="At least 8 characters"></label>
+            <label class="fld">Confirm password<input type="password" required minlength="8"
+                    placeholder="Repeat password"></label>
+            <label class="fld">Preferred game<select required>
+                    <option value="">Choose a game</option>
+                    <option>Valorant</option>
+                    <option>BGMI</option>
+                    <option>Counter-Strike 2</option>
+                </select></label>
+            <div class="row"><label><input type="checkbox" required> I accept the terms and conditions</label></div>
+            <button class="btn p" type="submit">Create account</button>
+            <p class="alt">Already registered? <a href="login.html">Log in</a></p>
+        </form>
+    </main>
+</body>
+
+</html>

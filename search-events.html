@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tournaments | GAME ARENA</title>
+    <link rel="icon" href="assets/logos/logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Figtree:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="w"><a class="brand" href="index.html"><img src="assets/logos/logo.svg" alt="" width="40"
+                    height="40">GAME ARENA</a>
+            <nav aria-label="Main">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="live.html">Live</a></li>
+                    <li><a href="leaderboard.html">Leaderboard</a></li>
+                    <li><a href="search-events.html" aria-current="page">Tournaments</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="activities.html">Activities</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="w">
+            <div class="ph in">
+                <h1>Tournaments</h1>
+                <p>Browse open brackets, follow live events and revisit finished ones.</p>
+            </div>
+            <section style="padding-top:24px">
+                <div class="fb rv"><input class="search" type="search" placeholder="Search tournaments"
+                        aria-label="Search tournaments">
+                    <p>Game</p>
+                    <div class="chips" role="radiogroup"><input type="radio" name="g" id="g-a" checked><label
+                            for="g-a">All games</label><input type="radio" name="g" id="g-v"><label
+                            for="g-v">Valorant</label><input type="radio" name="g" id="g-b"><label
+                            for="g-b">BGMI</label><input type="radio" name="g" id="g-c"><label for="g-c">Counter-Strike
+                            2</label></div>
+                    <p>Status</p>
+                    <div class="chips" role="radiogroup"><input type="radio" name="s" id="s-a" checked><label
+                            for="s-a">All</label><input type="radio" name="s" id="s-u"><label
+                            for="s-u">Upcoming</label><input type="radio" name="s" id="s-o"><label
+                            for="s-o">Ongoing</label><input type="radio" name="s" id="s-d"><label
+                            for="s-d">Completed</label></div>
+                </div>
+                <div class="grp su">
+                    <h2 class="rv">Upcoming tournaments</h2>
+                    <div class="g">
+                        <article class="card tc gv su rv">
+                            <div class="bn" data-t="VALORANT"><span class="tag t-o">Registration open</span></div>
+                            <div class="pad">
+                                <p>Valorant</p>
+                                <h3>Arena Masters Valorant Open</h3>
+                                <div class="meta">
+                                    <div><b>₹5,00,000</b><small>Prize pool</small></div>
+                                    <div><b>₹500</b><small>Entry fee</small></div>
+                                    <div><b>96 / 128 teams</b><small>Participants</small></div>
+                                    <div><b style="font-size:1.05rem">Closes 18 Nov 2026</b><small>Date</small></div>
+                                </div><a class="btn p sm" href="tournament-details.html">View details</a>
+                            </div>
+                        </article>
+                        <article class="card tc gc su rv">
+                            <div class="bn" data-t="CS2"><span class="tag t-o">Registration open</span></div>
+                            <div class="pad">
+                                <p>Counter-Strike 2</p>
+                                <h3>CS2 Iron Cup</h3>
+                                <div class="meta">
+                                    <div><b>₹2,50,000</b><small>Prize pool</small></div>
+                                    <div><b>₹400</b><small>Entry fee</small></div>
+                                    <div><b>48 / 64 teams</b><small>Participants</small></div>
+                                    <div><b style="font-size:1.05rem">Closes 28 Nov 2026</b><small>Date</small></div>
+                                </div><a class="btn p sm" href="tournament-details.html">View details</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="grp so">
+                    <h2 class="rv">Ongoing tournaments</h2>
+                    <div class="g">
+                        <article class="card tc gb so rv">
+                            <div class="bn" data-t="BGMI"><span class="tag t-l">Live now</span></div>
+                            <div class="pad">
+                                <p>BGMI</p>
+                                <h3>BGMI Pro Series Season 4</h3>
+                                <div class="meta">
+                                    <div><b>₹3,00,000</b><small>Prize pool</small></div>
+                                    <div><b>₹300</b><small>Entry fee</small></div>
+                                    <div><b>100 squads</b><small>Participants</small></div>
+                                    <div><b style="font-size:1.05rem">Round 3 in progress</b><small>Date</small></div>
+                                </div><a class="btn p sm" href="tournament-details.html">View details</a>
+                            </div>
+                        </article>
+                        <article class="card tc gc so rv">
+                            <div class="bn" data-t="CS2"><span class="tag t-l">Live now</span></div>
+                            <div class="pad">
+                                <p>Counter-Strike 2</p>
+                                <h3>Inferno Invitational</h3>
+                                <div class="meta">
+                                    <div><b>₹2,00,000</b><small>Prize pool</small></div>
+                                    <div><b>₹250</b><small>Entry fee</small></div>
+                                    <div><b>32 teams</b><small>Participants</small></div>
+                                    <div><b style="font-size:1.05rem">Quarterfinals live</b><small>Date</small></div>
+                                </div><a class="btn p sm" href="tournament-details.html">View details</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="grp sd">
+                    <h2 class="rv">Completed tournaments</h2>
+                    <div class="g">
+                        <article class="card tc gv sd rv">
+                            <div class="bn" data-t="VALORANT"><span class="tag t-d">Completed</span></div>
+                            <div class="pad">
+                                <p>Valorant</p>
+                                <h3>Winter Clash Valorant</h3>
+                                <div class="meta">
+                                    <div><b>₹1,00,000</b><small>Prize pool</small></div>
+                                    <div><b>Free</b><small>Entry fee</small></div>
+                                    <div><b>64 teams</b><small>Participants</small></div>
+                                    <div><b style="font-size:1.05rem">Ended 20 Oct 2026</b><small>Date</small></div>
+                                </div><a class="btn p sm" href="tournament-details.html">View details</a>
+                            </div>
+                        </article>
+                        <article class="card tc gb sd rv">
+                            <div class="bn" data-t="BGMI"><span class="tag t-d">Completed</span></div>
+                            <div class="pad">
+                                <p>BGMI</p>
+                                <h3>Mobile Mayhem BGMI</h3>
+                                <div class="meta">
+                                    <div><b>₹1,50,000</b><small>Prize pool</small></div>
+                                    <div><b>₹200</b><small>Entry fee</small></div>
+                                    <div><b>100 squads</b><small>Participants</small></div>
+                                    <div><b style="font-size:1.05rem">Ended 2 Oct 2026</b><small>Date</small></div>
+                                </div><a class="btn p sm" href="tournament-details.html">View details</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <footer class="foot">
+        <div class="w">
+            <div class="fg rv">
+                <div><a class="brand" href="index.html"><img src="assets/logos/logo.svg" alt="" width="40"
+                            height="40">GAME ARENA</a>
+                    <p style="margin-top:12px;max-width:36ch">Find tournaments, watch live matches and track your climb.
+                    </p>
+                </div>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="live.html">Live</a></li>
+                    <li><a href="leaderboard.html">Leaderboard</a></li>
+                </ul>
+                <ul>
+                    <li><a href="search-events.html">Tournaments</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="activities.html">Activities</a></li>
+                    <li><a href="register.html">Create account</a></li>
+                </ul>
+            </div><small>Frontend prototype. All players, teams, scores and prizes are sample data.</small>
+        </div>
+    </footer>
+</body>
+
+</html>
