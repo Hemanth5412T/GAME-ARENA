@@ -3,22 +3,26 @@ import { Link } from "../components/TransitionLink.jsx";
 import { useEffect, useState } from "react";
 import { getRegistrationsForUser, registerTournament, subscribeToData } from "../data/gameArenaData.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getTournamentById, getTournamentStatus, isTournamentRegistrationOpen } from "../data/tournaments.js";
+import { getAllTournaments, getTournamentById, getTournamentStatus, isTournamentRegistrationOpen } from "../data/tournaments.js";
 
 const gameClasses = { valorant: "gv", bgmi: "gb", cs2: "gc" };
-const statusNames = { upcoming: "Upcoming", ongoing: "Ongoing", completed: "Completed" };
+const statusNames = { upcoming: "Upcoming", "registration-closed":"Registration closed", draft:"Draft", cancelled:"Cancelled", ongoing: "Ongoing", completed: "Completed" };
 const currency = (value) => value === 0 ? "Free" : `₹${Number(value).toLocaleString("en-IN")}`;
 const dateTime = (value) => new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 
 export default function TournamentDetails() {
   const { id } = useParams();
   const { user, status: authStatus } = useAuth();
-  const tournament = getTournamentById(id);
+  const [tournament, setTournament] = useState(() => getTournamentById(id));
   const [registered, setRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const authReady = authStatus !== "loading";
+  const registrationRestricted = user?.status === "restricted";
   const status = tournament ? getTournamentStatus(tournament) : null;
   const registrationOpen = tournament ? isTournamentRegistrationOpen(tournament) : false;
+
+  useEffect(() => { let active = true; getAllTournaments().then((items) => { if (active) setTournament(items.find((item) => item.id === id) || null); }); return () => { active = false; }; }, [id]);
 
   useEffect(() => {
     if (!tournament) return undefined;
@@ -29,8 +33,8 @@ export default function TournamentDetails() {
     return subscribeToData(refresh);
   }, [id, tournament, user]);
 
-  function handleRegister() {
-    if (!tournament || !registrationOpen) return;
+  async function handleRegister() {
+    if (!tournament || !registrationOpen || registering) return;
     if (!authReady) {
       setFeedback({ message: "Checking your account session. Please try again in a moment." });
       return;
@@ -39,7 +43,12 @@ export default function TournamentDetails() {
       setFeedback({ message: "Log in to register for this tournament.", to: "/login", link: "Log in" });
       return;
     }
-    const result = registerTournament(tournament, user.id);
+    if (user.status === "restricted") { setFeedback({ message: "Your account is restricted. Tournament registration is unavailable." }); return; }
+    setRegistering(true);
+    let result;
+    try { result = await registerTournament(tournament, user.id); }
+    catch { result = { ok: false, reason: "storage-unavailable" }; }
+    finally { setRegistering(false); }
     if (result.ok) {
       setRegistered(true);
       setFeedback({ message: "Registration successful.", to: "/activities", link: "View activities" });
@@ -48,6 +57,8 @@ export default function TournamentDetails() {
       setFeedback({ message: "This account is already registered for this tournament." });
     } else if (result.reason === "registration-closed") {
       setFeedback({ message: "Registration is closed for this tournament." });
+    } else if (result.reason === "account-restricted") {
+      setFeedback({ message: "Your account is restricted. Tournament registration is unavailable." });
     } else {
       setFeedback({ message: "Registration could not be saved in this browser. Enable local storage and try again.", error: true });
     }
@@ -129,9 +140,10 @@ export default function TournamentDetails() {
                   ? `Registration ${registrationOpen ? `closes on ${dateTime(tournament.registrationDeadline)}` : "is closed"}. Entry fee ${currency(tournament.entryFee)}.`
                   : status === "ongoing" ? `This tournament is in progress. ${participants} ${tournament.participants.label} registered.` : "This tournament is complete. Registration is closed."}
               </p>
-              <button className="btn s" type="button" id="register-tournament" onClick={handleRegister} disabled={registered || !registrationOpen || !authReady}>
-                {!authReady ? "Checking session…" : registered ? "Already registered" : status === "completed" ? "Tournament completed" : status === "ongoing" ? "Tournament in progress" : registrationOpen ? "Register your team" : "Registration closed"}
+              <button className="btn s" type="button" id="register-tournament" onClick={handleRegister} disabled={registered || registering || !registrationOpen || !authReady || registrationRestricted}>
+                {registering ? "Registering…" : !authReady ? "Checking session…" : registrationRestricted ? "Registration unavailable" : registered ? "Already registered" : status === "completed" ? "Tournament completed" : status === "ongoing" ? "Tournament in progress" : registrationOpen ? "Register your team" : "Registration closed"}
               </button>
+              {registrationRestricted && <p role="status" className="registration-feedback">Your account is restricted. Tournament registration is unavailable.</p>}
               <p id="registration-feedback" className={`registration-feedback${feedback?.error ? " registration-feedback-error" : ""}`} role="status" aria-live="polite">
                 {feedback && <>{feedback.message}{feedback.link && <> <Link to={feedback.to}>{feedback.link}</Link></>}</>}
               </p>

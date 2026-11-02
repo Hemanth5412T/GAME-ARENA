@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Route, Routes, useLocation, useNavigationType } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
 import { Link } from "./components/TransitionLink.jsx";
 import { MainNav, SiteFooter } from "./components/MainLayout.jsx";
 import Home from "./pages/Home.jsx";
@@ -11,10 +11,14 @@ import TournamentDetails from "./pages/TournamentDetails.jsx";
 import Profile from "./pages/Profile.jsx";
 import Activities from "./pages/Activities.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
+import { canUseAdmin, getInterfaceMode } from "./data/adminStore.js";
 
 const titles = {
   "/": "Home", "/live": "Live", "/leaderboard": "Leaderboard", "/search-events": "Tournaments",
   "/profile": "Profile", "/activities": "Activities", "/login": "Login", "/register": "Register",
+  "/admin": "Admin Dashboard",
 };
 const navbarIndices = {
   "/": 0,
@@ -25,6 +29,7 @@ const navbarIndices = {
   "/activities": 5,
   "/login": -1,
   "/register": -1,
+  "/admin": 6,
 };
 
 function navbarIndex(pathname) {
@@ -45,6 +50,8 @@ function isAuthPath(pathname) {
 }
 
 function RouteContent({ location }) {
+  const { user, status } = useAuth();
+  const canAdmin = canUseAdmin(user) && getInterfaceMode() === "admin";
   const authMode = isAuthPath(location.pathname);
   return <>
     <Routes location={location}>
@@ -55,6 +62,7 @@ function RouteContent({ location }) {
       <Route path="/tournament/:id" element={<TournamentDetails />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/activities" element={<Activities />} />
+      <Route path="/admin" element={status === "loading" ? <main className="w"><p>Loading account…</p></main> : canAdmin ? <AdminDashboard /> : <Navigate to={user ? "/" : "/login"} replace />} />
       <Route path="/login" element={<AuthPage initialMode="login" />} />
       <Route path="/register" element={<AuthPage initialMode="register" />} />
       <Route path="*" element={<main className="w"><h1>Page not found</h1><p><Link to="/">Return home</Link></p></main>} />

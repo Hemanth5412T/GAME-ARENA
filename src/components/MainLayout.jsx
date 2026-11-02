@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "./TransitionLink.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import logo from "../../assets/logos/logo.svg";
+import { canUseAdmin, getInterfaceMode, setInterfaceMode, validateAdminAccount } from "../data/adminStore.js";
 
 const navigation = [
   ["Home", "/"],
@@ -17,6 +18,7 @@ export function MainNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, status, logout } = useAuth();
+  const adminMode = getInterfaceMode() === "admin";
   const [logoutPending, setLogoutPending] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const logoutStarted = useRef(false);
@@ -47,7 +49,10 @@ export function MainNav() {
         <Link className="brand" to="/"><img src={logo} alt="" width="40" height="40" />GAME ARENA</Link>
         <nav aria-label="Main"><ul>{navigation.map(([label, href]) => (
           <li key={href}><Link to={href} aria-current={current === href ? "page" : undefined}>{label}</Link></li>
-        ))}<li className="nav-auth-item">{status === "loading" ? <span className="nav-auth-button" aria-busy="true">Login</span> : user
+        ))}{user && canUseAdmin(user) && <li className="nav-mode-item">{adminMode
+          ? <><Link to="/admin" aria-current={pathname === "/admin" ? "page" : undefined}>Admin Dashboard</Link><button type="button" className="nav-mode-button" onClick={() => { setInterfaceMode("player"); navigate("/", { viewTransition: true }); }}>Player Mode</button></>
+          : <button type="button" className="nav-mode-button" onClick={async () => { try { if (!(await validateAdminAccount(user.id))) { setLogoutError("Admin access is no longer available for this account."); return; } setInterfaceMode("admin"); navigate("/admin", { viewTransition: true }); } catch { setLogoutError("Could not verify admin access. Please try again."); } }}>Admin Mode</button>}</li>}
+        <li className="nav-auth-item">{status === "loading" ? <span className="nav-auth-button" aria-busy="true">Login</span> : user
           ? <button className="nav-auth-button" type="button" disabled={logoutPending} onClick={handleLogout}>{logoutPending ? "Logging out…" : "Logout"}</button>
           : <Link className="nav-auth-button" to="/login">Login</Link>}
         {logoutError && <small className="nav-auth-error" role="alert">{logoutError}</small>}

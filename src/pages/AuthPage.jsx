@@ -86,7 +86,7 @@ export default function AuthPage({ initialMode }) {
     switch (field) {
       case "username":
         if (!username) message = "Enter a username.";
-        else if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) message = "Use 3 to 24 characters: letters, numbers, or underscores.";
+        else if (!/^[a-zA-Z0-9_@]{3,24}$/.test(username)) message = "Use 3 to 24 characters: letters, numbers, underscores, or @.";
         break;
       case "email": {
         const email = values.email.trim();

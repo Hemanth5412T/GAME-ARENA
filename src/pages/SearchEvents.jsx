@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "../components/TransitionLink.jsx";
-import { getTournamentStatus, isTournamentRegistrationOpen, tournaments } from "../data/tournaments.js";
+import { getAllTournaments, getTournamentStatus, isTournamentRegistrationOpen } from "../data/tournaments.js";
 
 const gameClasses = { valorant: "gv", bgmi: "gb", cs2: "gc" };
-const statusClasses = { upcoming: "su", ongoing: "so", completed: "sd" };
-const statusLabels = { upcoming: "Upcoming tournaments", ongoing: "Ongoing tournaments", completed: "Completed tournaments" };
-const statusBadges = { upcoming: "Registration open", ongoing: "Live now", completed: "Completed" };
+const statusClasses = { upcoming: "su", "registration-closed":"sd", draft:"sd", cancelled:"sd", ongoing: "so", completed: "sd" };
+const statusLabels = { upcoming: "Upcoming tournaments", "registration-closed":"Registration closed", draft:"Draft tournaments", cancelled:"Cancelled tournaments", ongoing: "Ongoing tournaments", completed: "Completed tournaments" };
+const statusBadges = { upcoming: "Registration open", "registration-closed":"Registration closed", draft:"Draft", cancelled:"Cancelled", ongoing: "Live now", completed: "Completed" };
 const currency = (value) => value === 0 ? "Free" : `₹${Number(value).toLocaleString("en-IN")}`;
 const dateLabel = (value) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 
@@ -13,7 +13,7 @@ function TournamentCard({ tournament, filters }) {
   const status = getTournamentStatus(tournament);
   const registrationOpen = isTournamentRegistrationOpen(tournament);
   const matches = (filters.game === "all" || filters.game === tournament.gameKey)
-    && (filters.status === "all" || filters.status === status)
+    && (filters.status === "all" || filters.status === status || (filters.status === "upcoming" && ["registration-closed","draft"].includes(status)))
     && `${tournament.name} ${tournament.game}`.toLowerCase().includes(filters.query.trim().toLowerCase());
   const gameClass = gameClasses[tournament.gameKey];
   const sharedArtwork = tournament.id === "arena-masters-valorant-open";
@@ -23,7 +23,7 @@ function TournamentCard({ tournament, filters }) {
   const participantCount = tournament.participants.capacity
     ? `${tournament.participants.registered} / ${tournament.participants.capacity} ${tournament.participants.label}`
     : `${tournament.participants.registered} ${tournament.participants.label}`;
-  const dateText = status === "upcoming"
+  const dateText = status === "upcoming" || status === "registration-closed" || status === "draft"
     ? `Closes ${dateLabel(tournament.registrationDeadline)}`
     : status === "ongoing" ? "In progress" : `Ended ${dateLabel(tournament.end)}`;
 
@@ -47,6 +47,8 @@ function TournamentCard({ tournament, filters }) {
 
 export default function SearchEvents() {
   const [filters, setFilters] = useState({ query: "", game: "all", status: "all" });
+  const [tournaments, setTournaments] = useState([]);
+  useEffect(() => { let active = true; getAllTournaments().then((items) => { if (active) setTournaments(items); }); return () => { active = false; }; }, []);
   return (
     <main>
       <div className="w">

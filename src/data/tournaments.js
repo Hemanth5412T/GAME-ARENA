@@ -1,3 +1,5 @@
+import { listManagedTournaments } from "./adminStore.js";
+
 export const tournaments = [
   {
     id: "valorant-nightfall-series",
@@ -171,17 +173,30 @@ export function getTournamentById(id) {
   return tournaments.find((tournament) => tournament.id === id) || null;
 }
 
+export async function getAllTournaments() {
+  try {
+    const managed = await listManagedTournaments();
+    const overrides = new Map(managed.map((item) => [item.id, item]));
+    return [...tournaments.filter((item) => !overrides.get(item.id)?.deleted).map((item) => overrides.get(item.id) || item), ...managed.filter((item) => !item.deleted && !tournaments.some((base) => base.id === item.id))];
+  }
+  catch { return [...tournaments]; }
+}
+
 export function getTournamentStatus(tournament, now = new Date()) {
+  if (["draft", "registration-closed", "cancelled"].includes(tournament?.status)) return tournament.status;
   const start = Date.parse(tournament?.start);
   const end = Date.parse(tournament?.end);
   const nowTime = new Date(now).getTime();
-  if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(nowTime)) return tournament?.status || "upcoming";
+  if (!Number.isFinite(start) || !Number.isFinite(nowTime)) return tournament?.status === "registration-open" ? "upcoming" : tournament?.status || "upcoming";
   if (nowTime < start) return "upcoming";
+  if (!Number.isFinite(end)) return tournament?.status === "completed" ? "completed" : "ongoing";
   if (nowTime > end) return "completed";
   return "ongoing";
 }
 
 export function isTournamentRegistrationOpen(tournament, now = new Date()) {
+  if (["draft", "registration-closed", "cancelled", "completed"].includes(tournament?.status)) return false;
+  if (tournament?.status && !["upcoming", "registration-open"].includes(tournament.status)) return false;
   if (getTournamentStatus(tournament, now) !== "upcoming") return false;
   if (Number.isFinite(tournament?.participants?.capacity)
     && Number(tournament.participants.registered) >= tournament.participants.capacity) return false;

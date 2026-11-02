@@ -20,9 +20,9 @@ export default function Activities() {
     return () => window.clearInterval(timer);
   }, []);
 
-  function confirmUnregistration() {
+  async function confirmUnregistration() {
     if (!pendingUnregistration) return;
-    const result = unregisterTournament(pendingUnregistration.tournamentId, user?.id, new Date());
+    const result = await unregisterTournament(pendingUnregistration.tournamentId, user?.id, new Date());
     if (result.ok) {
       setPendingUnregistration(null);
       setUnregistrationFeedback("");

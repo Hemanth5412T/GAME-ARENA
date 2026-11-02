@@ -1,5 +1,6 @@
 const DB_NAME = "gameArenaAccounts";
 const STORE = "accounts";
+export const ADMIN_STORES = { tournaments: "managedTournaments", requests: "promotionRequests", audit: "adminAudit" };
 const SESSION_KEY = "gameArena.authUserId";
 const ITERATIONS = 600_000;
 let databasePromise;
@@ -15,11 +16,26 @@ function safeAccount(account) {
 function openDatabase() {
   if (!globalThis.indexedDB || !globalThis.crypto?.subtle) return Promise.reject(new Error("Secure browser storage is unavailable."));
   if (!databasePromise) databasePromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = () => {
-      const store = request.result.createObjectStore(STORE, { keyPath: "id" });
-      store.createIndex("usernameNormalized", "usernameNormalized", { unique: true });
-      store.createIndex("emailNormalized", "emailNormalized", { unique: true });
+    const request = indexedDB.open(DB_NAME, 2);
+    request.onupgradeneeded = (event) => {
+      const db = request.result;
+      let store;
+      if (!db.objectStoreNames.contains(STORE)) {
+        store = db.createObjectStore(STORE, { keyPath: "id" });
+        store.createIndex("usernameNormalized", "usernameNormalized", { unique: true });
+        store.createIndex("emailNormalized", "emailNormalized", { unique: true });
+      } else store = request.transaction.objectStore(STORE);
+      for (const name of Object.values(ADMIN_STORES)) if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: "id" });
+      if (event.oldVersion < 2) {
+        const cursor = store.openCursor();
+        cursor.onsuccess = () => {
+          const row = cursor.result;
+          if (!row) return;
+          const account = row.value;
+          row.update({ ...account, role: account.role || "player", status: account.status || (account.isActive === false ? "banned" : "active"), statusReason: account.statusReason || null, statusUpdatedAt: account.statusUpdatedAt || null, statusUpdatedBy: account.statusUpdatedBy || null });
+          row.continue();
+        };
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error || new Error("Could not open account storage."));
@@ -46,14 +62,14 @@ function equalBytes(a, b) {
   for (let index = 0; index < a.length; index++) difference |= a[index] ^ b[index];
   return difference === 0;
 }
-function validUsername(username) { return /^[a-z0-9_]{3,24}$/.test(normalize(username)); }
+function validUsername(username) { return /^[a-z0-9_@]{3,24}$/.test(normalize(username)); }
 function validEmail(email) { return /^[^\s@]+@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(normalize(email)); }
 
 export async function createAccount({ username, email, password }) {
   const cleanUsername = String(username || "").trim();
   const normalizedUsername = normalize(cleanUsername);
   const normalizedEmail = normalize(email);
-  if (!validUsername(cleanUsername)) return { ok: false, fields: { username: "Use 3–24 letters, numbers, or underscores." } };
+  if (!validUsername(cleanUsername)) return { ok: false, fields: { username: "Use 3–24 letters, numbers, underscores, or @." } };
   if (!validEmail(normalizedEmail)) return { ok: false, fields: { email: "Enter a valid email address." } };
   if (typeof password !== "string" || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) return { ok: false, fields: { password: "Use at least 8 characters with uppercase, lowercase, and a number." } };
   try {
@@ -63,7 +79,7 @@ export async function createAccount({ username, email, password }) {
     const passwordHash = await hashPassword(password, salt);
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
-    const account = { id, playerId: `GA-${id.replaceAll("-", "").slice(0, 8).toUpperCase()}`, username: cleanUsername, email: normalizedEmail, usernameNormalized: normalizedUsername, emailNormalized: normalizedEmail, bio: "", passwordSalt: toBase64(salt), passwordHash: toBase64(passwordHash), createdAt: now, updatedAt: now, isActive: true };
+    const account = { id, playerId: `GA-${id.replaceAll("-", "").slice(0, 8).toUpperCase()}`, username: cleanUsername, email: normalizedEmail, usernameNormalized: normalizedUsername, emailNormalized: normalizedEmail, passwordHash: toBase64(passwordHash), passwordSalt: toBase64(salt), bio: "", role: "player", status: "active", statusReason: null, statusUpdatedAt: null, statusUpdatedBy: null, createdAt: now, updatedAt: now, isActive: true };
     const db = await openDatabase();
     await requestValue(db.transaction(STORE, "readwrite").objectStore(STORE).add(account));
     return { ok: true, user: safeAccount(account) };
@@ -76,8 +92,9 @@ export async function createAccount({ username, email, password }) {
 export async function authenticateAccount(identifier, password) {
   try {
     const value = normalize(identifier);
-    const account = value.includes("@") ? await getByIndex("emailNormalized", value) : await getByIndex("usernameNormalized", value);
-    if (!account || !account.isActive) {
+    const account = await getByIndex("usernameNormalized", value) || (value.includes("@") ? await getByIndex("emailNormalized", value) : null);
+    if (account?.status === "banned" || account?.isActive === false) return { ok: false, banned: true, message: "This account is banned and cannot log in." };
+    if (!account) {
       await hashPassword(String(password || ""), new Uint8Array(16));
       return { ok: false, message: "Email/username or password is incorrect." };
     }
@@ -92,14 +109,77 @@ export async function authenticateAccount(identifier, password) {
 export async function getAccountById(id) {
   if (!id) return null;
   const account = await getStoredAccountById(id);
-  return account?.isActive ? safeAccount(account) : null;
+  return account?.isActive && account.status !== "banned" ? safeAccount(account) : null;
+}
+
+export async function getStoredAccounts() {
+  const db = await openDatabase();
+  const rows = await requestValue(db.transaction(STORE, "readonly").objectStore(STORE).getAll());
+  return rows.map(safeAccount);
+}
+export async function updateStoredAccount(id, updater) {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite"); const store = tx.objectStore(STORE); let result;
+    const req = store.get(id); req.onsuccess = () => { if (!req.result) { tx.abort(); return; } result = updater(req.result); store.put(result); };
+    tx.oncomplete = () => resolve(safeAccount(result)); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error("Account update rejected."));
+  });
+}
+export async function initializeAccountDatabase() { await openDatabase(); }
+
+// Repairs only the known first-run demo administrator after the early prototype
+// stored its account without the computed password hash. Other accounts must
+// reset their password because their original plaintext is intentionally absent.
+export async function repairSeedAccountCredentials({ username, email, password, legacyUsername, legacyEmail }) {
+  const usernameNormalized = normalize(username);
+  const db = await openDatabase();
+  const existing = await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const store = tx.objectStore(STORE);
+    const currentReq = store.index("usernameNormalized").get(usernameNormalized);
+    currentReq.onsuccess = async () => {
+      let account = currentReq.result;
+      if (!account && legacyUsername) {
+        const legacyReq = store.index("usernameNormalized").get(normalize(legacyUsername));
+        legacyReq.onsuccess = () => {
+          const legacy = legacyReq.result;
+          if (legacy?.role === "master_admin" || legacy?.createdBy === "first-run-seed" || normalize(legacy?.email) === normalize(legacyEmail)) resolve(legacy);
+          else resolve(null);
+        };
+        legacyReq.onerror = () => reject(legacyReq.error);
+        return;
+      }
+      if (account && (account.role === "master_admin" || account.createdBy === "first-run-seed")) resolve(account);
+      else resolve(null);
+    };
+    currentReq.onerror = () => reject(currentReq.error);
+  });
+  if (!existing) return null;
+  const changed = existing.username !== username || existing.email !== normalize(email) || !existing.passwordHash || !existing.passwordSalt;
+  if (!changed) return safeAccount(existing);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const passwordHash = await hashPassword(password, salt);
+  await requestValue(db.transaction(STORE, "readwrite").objectStore(STORE).put({
+    ...existing,
+    username,
+    usernameNormalized,
+    email: normalize(email),
+    emailNormalized: normalize(email),
+    passwordHash: toBase64(passwordHash),
+    passwordSalt: toBase64(salt),
+    role: "master_admin",
+    status: existing.status || "active",
+    isActive: existing.status !== "banned",
+    updatedAt: new Date().toISOString(),
+  }));
+  return safeAccount({ ...existing, username, usernameNormalized, email: normalize(email), emailNormalized: normalize(email), role: "master_admin" });
 }
 
 export async function updateAccountProfile(id, { username, bio }) {
   const cleanUsername = String(username || "").trim();
   const usernameNormalized = normalize(cleanUsername);
   const cleanBio = String(bio ?? "").trim();
-  if (!validUsername(cleanUsername)) return { ok: false, reason: "invalid-username", message: "Use 3–24 letters, numbers, or underscores." };
+  if (!validUsername(cleanUsername)) return { ok: false, reason: "invalid-username", message: "Use 3–24 letters, numbers, underscores, or @." };
   if (cleanBio.length > 250) return { ok: false, reason: "bio-too-long", message: "Bio must be 250 characters or fewer." };
   try {
     const existing = await getStoredAccountById(id);

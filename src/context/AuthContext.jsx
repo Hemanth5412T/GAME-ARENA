@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { authenticateAccount, changeAccountPassword, clearSessionUserId, createAccount, getAccountById, readSessionUserId, saveSessionUserId, updateAccountProfile } from "../data/accountStore.js";
+import { chooseInitialMode, initializeAdminData, validateInterfaceMode } from "../data/adminStore.js";
 
 const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
@@ -10,11 +11,13 @@ export function AuthProvider({ children }) {
     let active = true;
     const startRevision = authRevision.current;
     (async () => {
+      try { await initializeAdminData(); } catch { /* Auth surfaces storage failures when the user signs in. */ }
       const id = readSessionUserId();
       if (!id) { if (active && authRevision.current === startRevision) setStatus("unauthenticated"); return; }
       try {
         const restored = await getAccountById(id);
         if (!restored) clearSessionUserId();
+        if (restored) validateInterfaceMode(restored);
         if (active && authRevision.current === startRevision) { setUser(restored); setStatus(restored ? "authenticated" : "unauthenticated"); }
       } catch { if (active && authRevision.current === startRevision) { setUser(null); setStatus("unavailable"); } }
     })();
@@ -39,6 +42,7 @@ export function AuthProvider({ children }) {
       const result = await authenticateAccount(identifier, password);
       if (!result.ok) { if (result.unavailable) setStatus("unavailable"); return result; }
       if (!saveSessionUserId(result.user.id)) return { ok: false, unavailable: true, message: "Browser session storage is unavailable. Please enable it and try again." };
+      await chooseInitialMode(result.user);
       authRevision.current += 1;
       setUser(result.user); setStatus("authenticated");
       window.dispatchEvent(new CustomEvent("gamearena:user-updated"));
