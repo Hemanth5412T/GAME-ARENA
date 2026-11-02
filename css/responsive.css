@@ -201,6 +201,31 @@
     .hero .w, .two, .foot .fg { grid-template-columns: minmax(0, 1fr); }
     .sh { align-items: flex-start; }
     .two { gap: 20px; }
+    .tournament-detail-layout,
+    .tournament-detail-layout > *,
+    .tournament-detail-content,
+    .tournament-detail-content > * {
+        box-sizing: border-box;
+        min-width: 0;
+        max-width: 100%;
+    }
+    .tournament-detail-content > * { width: 100%; }
+    .tournament-detail-content :is(p, li, h2, h3, small, b, td, th) {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+    .tournament-detail-content .tw {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+    }
+    .tournament-detail-content .tw table { min-width: 640px; }
+    .tournament-detail-content .tms {
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+    }
     .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .mr { align-items: flex-start; gap: 12px; padding: 16px; }
     .mr h3 { min-width: 0; flex-basis: 100%; }

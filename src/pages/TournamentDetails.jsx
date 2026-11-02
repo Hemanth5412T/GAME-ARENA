@@ -1,9 +1,9 @@
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { Link } from "../components/TransitionLink.jsx";
 import { useEffect, useState } from "react";
-import { getRegistrationsForUser, registerTournament, subscribeToData } from "../data/gameArenaData.js";
+import { getRegistrationsForUser, getTournamentParticipantCount, registerTournament, subscribeToData } from "../data/gameArenaData.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getAllTournaments, getTournamentById, getTournamentStatus, isTournamentRegistrationOpen } from "../data/tournaments.js";
+import { getAllTournaments, getTournamentById, getTournamentRegistrationState, getTournamentStatus, subscribeToTournamentData } from "../data/tournaments.js";
 
 const gameClasses = { valorant: "gv", bgmi: "gb", cs2: "gc" };
 const statusNames = { upcoming: "Upcoming", "registration-closed":"Registration closed", draft:"Draft", cancelled:"Cancelled", ongoing: "Ongoing", completed: "Completed" };
@@ -12,6 +12,7 @@ const dateTime = (value) => new Intl.DateTimeFormat("en-IN", { dateStyle: "mediu
 
 export default function TournamentDetails() {
   const { id } = useParams();
+  const location = useLocation();
   const { user, status: authStatus } = useAuth();
   const [tournament, setTournament] = useState(() => getTournamentById(id));
   const [registered, setRegistered] = useState(false);
@@ -20,9 +21,18 @@ export default function TournamentDetails() {
   const authReady = authStatus !== "loading";
   const registrationRestricted = user?.status === "restricted";
   const status = tournament ? getTournamentStatus(tournament) : null;
-  const registrationOpen = tournament ? isTournamentRegistrationOpen(tournament) : false;
+  const participantCount = tournament ? getTournamentParticipantCount(tournament) : 0;
+  const registrationState = tournament ? getTournamentRegistrationState(tournament, new Date(), participantCount) : null;
+  const registrationOpen = Boolean(registrationState?.available);
 
   useEffect(() => { let active = true; getAllTournaments().then((items) => { if (active) setTournament(items.find((item) => item.id === id) || null); }); return () => { active = false; }; }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    const refreshTournament = () => getAllTournaments().then((items) => { if (active) setTournament(items.find((item) => item.id === id) || null); });
+    const unsubscribe = subscribeToTournamentData(refreshTournament);
+    return () => { active = false; unsubscribe(); };
+  }, [id]);
 
   useEffect(() => {
     if (!tournament) return undefined;
@@ -57,6 +67,8 @@ export default function TournamentDetails() {
       setFeedback({ message: "This account is already registered for this tournament." });
     } else if (result.reason === "registration-closed") {
       setFeedback({ message: "Registration is closed for this tournament." });
+    } else if (result.reason === "tournament-full") {
+      setFeedback({ message: "This tournament has reached maximum capacity." });
     } else if (result.reason === "account-restricted") {
       setFeedback({ message: "Your account is restricted. Tournament registration is unavailable." });
     } else {
@@ -76,10 +88,10 @@ export default function TournamentDetails() {
 
   const bannerClass = `bn big ${gameClasses[tournament.gameKey]}${tournament.id === "arena-masters-valorant-open" ? " shared-tournament-art" : ""}`;
   const statusClass = status === "upcoming" ? "t-o" : status === "ongoing" ? "t-l" : "t-d";
-  const statusLabel = status === "upcoming" ? (registrationOpen ? "Registration open" : "Registration closed") : statusNames[status];
+  const statusLabel = status === "upcoming" || status === "registration-closed" ? registrationState.label : statusNames[status];
   const participants = tournament.participants.capacity
-    ? `${tournament.participants.registered} / ${tournament.participants.capacity}`
-    : `${tournament.participants.registered}`;
+    ? `${participantCount} / ${tournament.participants.capacity}`
+    : `${participantCount}`;
   const spotsLeft = tournament.participants.capacity
     ? Math.max(0, tournament.participants.capacity - tournament.participants.registered)
     : null;
@@ -106,8 +118,8 @@ export default function TournamentDetails() {
           </div>
         </section>
         <section style={{ padding: "24px 0" }}>
-          <div className="two">
-            <div>
+          <div className="two tournament-detail-layout">
+            <div className="tournament-detail-content">
               <div className="card pad rv"><h2>About</h2><p style={{ marginTop: "12px" }}>{tournament.description}</p></div>
               <div className="card pad rv"><h2>Format</h2><p style={{ marginTop: "12px" }}>{tournament.format}</p></div>
               <div className="card pad rv">
@@ -136,12 +148,12 @@ export default function TournamentDetails() {
               <small>{status === "upcoming" ? "Spots left" : "Tournament status"}</small>
               <b>{status === "upcoming" && spotsLeft !== null ? spotsLeft : statusNames[status]}</b>
               <p style={{ margin: "12px 0 20px" }}>
-                {status === "upcoming"
-                  ? `Registration ${registrationOpen ? `closes on ${dateTime(tournament.registrationDeadline)}` : "is closed"}. Entry fee ${currency(tournament.entryFee)}.`
+                {status === "upcoming" || status === "registration-closed"
+                  ? `${registrationState.message} ${registrationOpen ? `Deadline: ${dateTime(tournament.registrationDeadline)}.` : ""} Entry fee ${currency(tournament.entryFee)}.`
                   : status === "ongoing" ? `This tournament is in progress. ${participants} ${tournament.participants.label} registered.` : "This tournament is complete. Registration is closed."}
               </p>
               <button className="btn s" type="button" id="register-tournament" onClick={handleRegister} disabled={registered || registering || !registrationOpen || !authReady || registrationRestricted}>
-                {registering ? "Registering…" : !authReady ? "Checking session…" : registrationRestricted ? "Registration unavailable" : registered ? "Already registered" : status === "completed" ? "Tournament completed" : status === "ongoing" ? "Tournament in progress" : registrationOpen ? "Register your team" : "Registration closed"}
+                {registering ? "Registering…" : !authReady ? "Checking session…" : registrationRestricted ? "Registration unavailable" : registered ? "Already registered" : registrationOpen ? "Register your team" : registrationState.label}
               </button>
               {registrationRestricted && <p role="status" className="registration-feedback">Your account is restricted. Tournament registration is unavailable.</p>}
               <p id="registration-feedback" className={`registration-feedback${feedback?.error ? " registration-feedback-error" : ""}`} role="status" aria-live="polite">

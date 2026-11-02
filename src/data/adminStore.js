@@ -54,6 +54,25 @@ export async function listAdminData() {
   return { accounts, tournaments, requests, audit: auditEvents.sort((a,b) => b.at.localeCompare(a.at)) };
 }
 export async function listManagedTournaments() { return all(ADMIN_STORES.tournaments); }
+export async function seedManagedTournaments(records = []) {
+  if (!Array.isArray(records) || records.length === 0) return;
+  const db = await openDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(ADMIN_STORES.tournaments, "readwrite");
+    const store = tx.objectStore(ADMIN_STORES.tournaments);
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const existingIds = new Set(request.result.map((item) => item.id));
+      records.forEach((record) => {
+        if (record?.id && !existingIds.has(record.id)) store.add({ ...record, source: "demo-seed" });
+      });
+    };
+    request.onerror = () => { try { tx.abort(); } catch {} };
+    tx.oncomplete = resolve;
+    tx.onabort = () => reject(tx.error || request.error || new Error("Tournament seed could not be saved."));
+    tx.onerror = () => reject(tx.error || new Error("Tournament seed could not be saved."));
+  });
+}
 export async function updateAccountStatus(actorId, targetId, status, reason = "") {
   const actor = await assertActor(actorId); const accounts = await getStoredAccounts(); const target = accounts.find((item) => item.id === targetId);
   if (!target || target.role === "master_admin" || (target.role === "admin" && (!isMaster(actor) || actor.id === target.id))) throw new Error("This account cannot be managed by your role.");
@@ -120,7 +139,9 @@ export async function saveManagedTournament(actorId, input, existingId = null) {
   if (!existingId && list.some((item) => item.id === id)) throw new Error("Tournament ID already exists.");
   const gameKey = input.game === "Valorant" ? "valorant" : input.game === "BGMI" ? "bgmi" : "cs2";
   const record = { ...(list.find((item) => item.id === id) || {}), ...input, id, gameKey, banner: input.game.toUpperCase(), status: input.status, entryFee: fee, prizePool: prize, participants: { registered: list.find((item) => item.id === id)?.participants?.registered || 0, capacity, label: "players" }, rules: String(input.rules || "").split("\n").map((item) => item.trim()).filter(Boolean), schedule: [], teams: [], source: "managed", updatedAt: nowIso() };
-  await write(ADMIN_STORES.tournaments, (store) => store.put(record)); await audit(actor, existingId ? "tournament-edited" : "tournament-created", id, record.name); return record;
+  await write(ADMIN_STORES.tournaments, (store) => store.put(record)); await audit(actor, existingId ? "tournament-edited" : "tournament-created", id, record.name);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("gamearena:tournament-updated"));
+  return record;
 }
 export async function deleteManagedTournament(actorId, id) {
   const actor = await assertActor(actorId); const existing = (await all(ADMIN_STORES.tournaments)).find((item) => item.id === id);
@@ -128,4 +149,5 @@ export async function deleteManagedTournament(actorId, id) {
   const registrations = JSON.parse(localStorage.getItem("gameArena.tournamentRegistrations") || "[]");
   if (registrations.some((item) => item.tournamentId === id)) throw new Error("This tournament has registrations. Cancel or resolve them before deleting it.");
   await write(ADMIN_STORES.tournaments, (store) => store.put({ id, deleted: true, updatedAt: nowIso() })); await audit(actor, "tournament-deleted", id, existing?.name || id);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("gamearena:tournament-updated"));
 }

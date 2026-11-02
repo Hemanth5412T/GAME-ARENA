@@ -1,4 +1,4 @@
-import { listManagedTournaments } from "./adminStore.js";
+import { listManagedTournaments, seedManagedTournaments } from "./adminStore.js";
 
 export const tournaments = [
   {
@@ -167,7 +167,102 @@ export const tournaments = [
     teams: ["Nova Esports", "Titan Squad", "Apex Syndicate", "Phantom Five"],
     results: [{ place: "1st", team: "Nova Esports", prize: 50000 }, { place: "2nd", team: "Titan Squad", prize: 30000 }, { place: "4th", team: "Apex Syndicate", prize: 15000 }],
   },
+  {
+    id: "valorant-rift-rivals-2026",
+    name: "Rift Rivals Valorant Cup",
+    game: "Valorant", gameKey: "valorant", banner: "VALORANT", status: "registration-open",
+    start: "2026-11-14T16:00:00+05:30", end: "2026-11-15T22:00:00+05:30", registrationOpensAt: "2026-10-20T00:00:00+05:30", registrationDeadline: "2026-11-11T16:00:00+05:30",
+    entryFee: 150, prizePool: 90000, participants: { registered: 34, capacity: 64, label: "teams" },
+    description: "A fast weekend Valorant cup for emerging teams, with a compact group stage and streamed finals.",
+    format: "Sixteen groups of four play best-of-one matches. Group winners advance to a best-of-three single-elimination bracket.",
+    rules: ["Teams field five players and one substitute.", "All players must use their registered accounts.", "Check-in closes 30 minutes before the first match.", "Coaching is allowed only between maps."],
+    schedule: [{ date: "2026-11-14", round: "Groups", time: "4:00 PM IST" }, { date: "2026-11-15", round: "Playoffs and final", time: "5:00 PM IST" }], teams: ["Riftwalkers", "Blue Orbit", "Vanguard", "Nova Esports"],
+  },
+  {
+    id: "bgmi-squad-showdown-nov-2026",
+    name: "BGMI Squad Showdown",
+    game: "BGMI", gameKey: "bgmi", banner: "BGMI", status: "registration-open",
+    start: "2026-11-21T12:00:00+05:30", end: "2026-11-22T20:00:00+05:30", registrationOpensAt: "2026-10-25T00:00:00+05:30", registrationDeadline: "2026-11-18T12:00:00+05:30",
+    entryFee: 200, prizePool: 125000, participants: { registered: 56, capacity: 100, label: "squads" },
+    description: "A two-day BGMI squad event that rewards smart rotations, consistent placements and clean finishes.",
+    format: "Six custom-lobby matches across two days. Placement and elimination points decide the final standings.",
+    rules: ["Squads have four starters and may name one substitute.", "Only the submitted roster may join the lobby.", "Emulators are not permitted.", "Results are final after admin review."],
+    schedule: [{ date: "2026-11-21", round: "Rounds 1–3", time: "12:00 PM IST" }, { date: "2026-11-22", round: "Rounds 4–6", time: "2:00 PM IST" }], teams: ["Drop Zone", "Nova Esports", "Titan Squad", "Apex Syndicate"],
+  },
+  {
+    id: "cs2-midnight-premier-2026",
+    name: "CS2 Midnight Premier",
+    game: "Counter-Strike 2", gameKey: "cs2", banner: "CS2", status: "registration-open",
+    start: "2026-11-28T17:00:00+05:30", end: "2026-11-30T22:00:00+05:30", registrationOpensAt: "2026-10-28T00:00:00+05:30", registrationDeadline: "2026-11-25T17:00:00+05:30",
+    entryFee: 350, prizePool: 220000, participants: { registered: 22, capacity: 32, label: "teams" },
+    description: "A 32-team Counter-Strike 2 premier built around disciplined utility, close maps and a live final.",
+    format: "Eight groups of four feed a 16-team single-elimination bracket. Matches are best-of-three.",
+    rules: ["Five starters and one substitute per team.", "VAC must remain enabled.", "Team captains report results after each match.", "Admins may review match demos for disputes."],
+    schedule: [{ date: "2026-11-28", round: "Group stage", time: "5:00 PM IST" }, { date: "2026-11-29", round: "Quarterfinals and semifinals", time: "4:00 PM IST" }, { date: "2026-11-30", round: "Grand final", time: "7:00 PM IST" }], teams: ["Dustline", "Crimson Fang", "Hawkeye Gaming", "Orion Gaming"],
+  },
+  {
+    id: "valorant-ascendant-open-dec-2026",
+    name: "Ascendant Open: December Split",
+    game: "Valorant", gameKey: "valorant", banner: "VALORANT", status: "registration-open",
+    start: "2026-12-06T15:00:00+05:30", end: "2026-12-13T21:00:00+05:30", registrationOpensAt: "2026-11-01T00:00:00+05:30", registrationDeadline: "2026-12-03T15:00:00+05:30",
+    entryFee: 500, prizePool: 350000, participants: { registered: 61, capacity: 128, label: "teams" },
+    description: "A week-long Valorant open split with room for new challengers and a substantial playoff prize pool.",
+    format: "Qualifiers seed 32 teams into groups. The top two per group advance to a double-elimination playoff.",
+    rules: ["Five players plus one substitute.", "All matches use the published map pool.", "Teams must check in 30 minutes before play.", "Roster locks at the registration deadline."],
+    schedule: [{ date: "2026-12-06", round: "Open qualifiers", time: "3:00 PM IST" }, { date: "2026-12-10", round: "Playoffs", time: "5:00 PM IST" }, { date: "2026-12-13", round: "Grand final", time: "7:00 PM IST" }], teams: ["Orion Gaming", "Riftwalkers", "Apex Syndicate", "Phantom Five"],
+  },
+  {
+    id: "bgmi-winter-drop-cup-2026",
+    name: "BGMI Winter Drop Cup",
+    game: "BGMI", gameKey: "bgmi", banner: "BGMI", status: "registration-open",
+    start: "2026-12-12T13:00:00+05:30", end: "2026-12-13T21:00:00+05:30", registrationOpensAt: "2026-11-02T00:00:00+05:30", registrationDeadline: "2026-12-09T13:00:00+05:30",
+    entryFee: 250, prizePool: 180000, participants: { registered: 43, capacity: 100, label: "squads" },
+    description: "A winter BGMI competition featuring two days of tactical survival rounds and a live leaderboard.",
+    format: "Eight matches over two days. Overall placement is determined by combined placement and elimination points.",
+    rules: ["Four players per squad; no mid-event roster swaps.", "All players use the official event client.", "Match lobbies open 20 minutes before start.", "Unsportsmanlike conduct can result in disqualification."],
+    schedule: [{ date: "2026-12-12", round: "Rounds 1–4", time: "1:00 PM IST" }, { date: "2026-12-13", round: "Rounds 5–8", time: "2:00 PM IST" }], teams: ["Titan Squad", "Drop Zone", "Nova Esports", "Stormbreak"],
+  },
+  {
+    id: "cs2-new-blood-series-2027",
+    name: "CS2 New Blood Series",
+    game: "Counter-Strike 2", gameKey: "cs2", banner: "CS2", status: "registration-open",
+    start: "2027-01-09T16:00:00+05:30", end: "2027-01-17T22:00:00+05:30", registrationOpensAt: "2026-11-03T00:00:00+05:30", registrationDeadline: "2027-01-05T16:00:00+05:30",
+    entryFee: 300, prizePool: 275000, participants: { registered: 18, capacity: 64, label: "teams" },
+    description: "An early-season CS2 series giving developing teams a full bracket and a chance to break into the rankings.",
+    format: "Four regional qualifiers feed a 16-team double-elimination final stage. All playoff matches are best-of-three.",
+    rules: ["Five starters and one registered substitute.", "Players must use their account-linked Steam ID.", "Match demos may be requested by admins.", "Teams must be ready at the scheduled lobby time."],
+    schedule: [{ date: "2027-01-09", round: "Qualifiers", time: "4:00 PM IST" }, { date: "2027-01-15", round: "Playoffs", time: "5:00 PM IST" }, { date: "2027-01-17", round: "Final", time: "7:00 PM IST" }], teams: ["Dustline", "Ironclad", "Hawkeye Gaming", "Crimson Fang"],
+  },
+  {
+    id: "valorant-new-year-showdown-2027",
+    name: "Valorant New Year Showdown",
+    game: "Valorant", gameKey: "valorant", banner: "VALORANT", status: "upcoming",
+    start: "2027-01-23T16:00:00+05:30", end: "2027-01-24T22:00:00+05:30", registrationOpensAt: "2026-11-10T00:00:00+05:30", registrationDeadline: "2027-01-20T16:00:00+05:30",
+    entryFee: 100, prizePool: 75000, participants: { registered: 0, capacity: 64, label: "teams" },
+    description: "A new-year Valorant event for community teams, with an accessible entry fee and a short weekend format.",
+    format: "Single-elimination bracket with best-of-one early rounds and best-of-three semifinals and final.",
+    rules: ["Five players per roster and one substitute.", "Check-in is required before each round.", "Map selection follows the event guide.", "The tournament team resolves match disputes."],
+    schedule: [{ date: "2027-01-23", round: "Opening rounds", time: "4:00 PM IST" }, { date: "2027-01-24", round: "Semifinals and final", time: "5:00 PM IST" }], teams: [],
+  },
+  {
+    id: "bgmi-champions-circuit-2027",
+    name: "BGMI Champions Circuit: Open Qualifier",
+    game: "BGMI", gameKey: "bgmi", banner: "BGMI", status: "upcoming",
+    start: "2027-02-06T12:00:00+05:30", end: "2027-02-14T21:00:00+05:30", registrationOpensAt: "2026-11-15T00:00:00+05:30", registrationDeadline: "2027-02-02T12:00:00+05:30",
+    entryFee: 400, prizePool: 400000, participants: { registered: 0, capacity: 128, label: "squads" },
+    description: "The open path into the Champions Circuit begins with regional BGMI qualifiers and culminates in a broadcast final.",
+    format: "Regional lobbies qualify squads to a 32-team final stage. Points are accumulated across six final matches.",
+    rules: ["Squads must register four starters and may add one substitute.", "Players must be 16 or older.", "All matches are played on the official event build.", "Final standings are subject to admin review."],
+    schedule: [{ date: "2027-02-06", round: "Regional qualifiers", time: "12:00 PM IST" }, { date: "2027-02-13", round: "Semifinals", time: "1:00 PM IST" }, { date: "2027-02-14", round: "Grand final", time: "5:00 PM IST" }], teams: [],
+  },
 ];
+
+const demoSeedIds = new Set([
+  "valorant-rift-rivals-2026", "bgmi-squad-showdown-nov-2026", "cs2-midnight-premier-2026",
+  "valorant-ascendant-open-dec-2026", "bgmi-winter-drop-cup-2026", "cs2-new-blood-series-2027",
+  "valorant-new-year-showdown-2027", "bgmi-champions-circuit-2027",
+]);
+const demoTournamentSeeds = tournaments.filter((item) => demoSeedIds.has(item.id));
 
 export function getTournamentById(id) {
   return tournaments.find((tournament) => tournament.id === id) || null;
@@ -175,11 +270,18 @@ export function getTournamentById(id) {
 
 export async function getAllTournaments() {
   try {
+    await seedManagedTournaments(demoTournamentSeeds);
     const managed = await listManagedTournaments();
     const overrides = new Map(managed.map((item) => [item.id, item]));
     return [...tournaments.filter((item) => !overrides.get(item.id)?.deleted).map((item) => overrides.get(item.id) || item), ...managed.filter((item) => !item.deleted && !tournaments.some((base) => base.id === item.id))];
   }
   catch { return [...tournaments]; }
+}
+
+export function subscribeToTournamentData(callback) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("gamearena:tournament-updated", callback);
+  return () => window.removeEventListener("gamearena:tournament-updated", callback);
 }
 
 export function getTournamentStatus(tournament, now = new Date()) {
@@ -194,13 +296,25 @@ export function getTournamentStatus(tournament, now = new Date()) {
   return "ongoing";
 }
 
-export function isTournamentRegistrationOpen(tournament, now = new Date()) {
-  if (["draft", "registration-closed", "cancelled", "completed"].includes(tournament?.status)) return false;
-  if (tournament?.status && !["upcoming", "registration-open"].includes(tournament.status)) return false;
-  if (getTournamentStatus(tournament, now) !== "upcoming") return false;
-  if (Number.isFinite(tournament?.participants?.capacity)
-    && Number(tournament.participants.registered) >= tournament.participants.capacity) return false;
-  const deadline = Date.parse(tournament?.registrationDeadline);
+export function getTournamentRegistrationState(tournament, now = new Date(), participantCount = tournament?.participants?.registered) {
+  if (!tournament) return { available: false, status: "unavailable", label: "Unavailable", message: "Tournament information is unavailable." };
+  const lifecycle = getTournamentStatus(tournament, now);
+  if (lifecycle === "draft") return { available: false, status: lifecycle, label: "Draft", message: "This tournament is not available to players yet." };
+  if (lifecycle === "cancelled") return { available: false, status: lifecycle, label: "Cancelled", message: "This tournament has been cancelled." };
+  if (lifecycle === "completed") return { available: false, status: lifecycle, label: "Completed", message: "This tournament is complete. Registration is closed." };
+  if (lifecycle === "ongoing") return { available: false, status: lifecycle, label: "Ongoing", message: "This tournament is in progress." };
+  if (tournament.status === "registration-closed") return { available: false, status: "registration-closed", label: "Registration closed", message: "Registration has closed." };
   const nowTime = new Date(now).getTime();
-  return Number.isFinite(deadline) && Number.isFinite(nowTime) && nowTime < deadline;
+  const opensAt = Date.parse(tournament.registrationOpensAt);
+  if (Number.isFinite(opensAt) && nowTime < opensAt) return { available: false, status: "not-yet-open", label: "Registration not yet open", message: "Registration has not opened yet." };
+  const capacity = Number(tournament.participants?.capacity);
+  if (Number.isFinite(capacity) && Number(participantCount) >= capacity) return { available: false, status: "full", label: "Tournament full", message: "Maximum participants reached." };
+  const deadline = Date.parse(tournament.registrationDeadline);
+  if (!Number.isFinite(deadline) || !Number.isFinite(nowTime) || nowTime >= deadline) return { available: false, status: "registration-closed", label: "Registration closed", message: "Registration has closed." };
+  if (!["upcoming", "registration-open"].includes(tournament.status)) return { available: false, status: "unavailable", label: "Registration unavailable", message: "Registration is unavailable." };
+  return { available: true, status: "registration-open", label: "Registration open", message: "Registration is open." };
+}
+
+export function isTournamentRegistrationOpen(tournament, now = new Date()) {
+  return getTournamentRegistrationState(tournament, now).available;
 }
