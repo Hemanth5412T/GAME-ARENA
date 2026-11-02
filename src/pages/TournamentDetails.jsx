@@ -1,321 +1,145 @@
+import { useParams } from "react-router-dom";
 import { Link } from "../components/TransitionLink.jsx";
 import { useEffect, useState } from "react";
-import { getCurrentUser, getRegistrationsForUser, registerTournament, subscribeToData } from "../data/gameArenaData.js";
+import { getRegistrationsForUser, registerTournament, subscribeToData } from "../data/gameArenaData.js";
+import { useAuth } from "../context/AuthContext.jsx";
+import { getTournamentById, getTournamentStatus, isTournamentRegistrationOpen } from "../data/tournaments.js";
+
+const gameClasses = { valorant: "gv", bgmi: "gb", cs2: "gc" };
+const statusNames = { upcoming: "Upcoming", ongoing: "Ongoing", completed: "Completed" };
+const currency = (value) => value === 0 ? "Free" : `₹${Number(value).toLocaleString("en-IN")}`;
+const dateTime = (value) => new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 
 export default function TournamentDetails() {
+  const { id } = useParams();
+  const { user, status: authStatus } = useAuth();
+  const tournament = getTournamentById(id);
   const [registered, setRegistered] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const authReady = authStatus !== "loading";
+  const status = tournament ? getTournamentStatus(tournament) : null;
+  const registrationOpen = tournament ? isTournamentRegistrationOpen(tournament) : false;
+
   useEffect(() => {
+    if (!tournament) return undefined;
     const refresh = () => {
-      const user = getCurrentUser();
-      setRegistered(Boolean(user && getRegistrationsForUser(user.id).some((item) => item.tournamentId === "arena-masters-valorant-open")));
+      setRegistered(Boolean(user && getRegistrationsForUser(user.id).some((item) => item.tournamentId === tournament.id)));
     };
     refresh();
     return subscribeToData(refresh);
-  }, []);
+  }, [id, tournament, user]);
 
   function handleRegister() {
-    if (!getCurrentUser()) {
+    if (!tournament || !registrationOpen) return;
+    if (!authReady) {
+      setFeedback({ message: "Checking your account session. Please try again in a moment." });
+      return;
+    }
+    if (!user) {
       setFeedback({ message: "Log in to register for this tournament.", to: "/login", link: "Log in" });
       return;
     }
-    const result = registerTournament({
-      id: "arena-masters-valorant-open",
-      name: "Arena Masters Valorant Open",
-      game: "Valorant",
-      start: "2026-11-22T16:00:00+05:30",
-      end: "2026-11-30T22:00:00+05:30",
-      entryFee: 500,
-      status: "Upcoming",
-      detailsUrl: "/tournament/arena-masters-valorant-open",
-    });
+    const result = registerTournament(tournament, user.id);
     if (result.ok) {
       setRegistered(true);
       setFeedback({ message: "Registration successful.", to: "/activities", link: "View activities" });
     } else if (result.reason === "duplicate") {
       setRegistered(true);
       setFeedback({ message: "This account is already registered for this tournament." });
+    } else if (result.reason === "registration-closed") {
+      setFeedback({ message: "Registration is closed for this tournament." });
     } else {
       setFeedback({ message: "Registration could not be saved in this browser. Enable local storage and try again.", error: true });
     }
   }
 
+  if (!tournament) {
+    return <main><div className="w">
+      <section className="card pad" style={{ margin: "48px 0", textAlign: "center" }}>
+        <h1>Tournament not found</h1>
+        <p style={{ margin: "12px 0 20px" }}>There is no tournament with ID <strong>{id}</strong>.</p>
+        <Link className="btn p" to="/search-events">Return to tournaments</Link>
+      </section>
+    </div></main>;
+  }
+
+  const bannerClass = `bn big ${gameClasses[tournament.gameKey]}${tournament.id === "arena-masters-valorant-open" ? " shared-tournament-art" : ""}`;
+  const statusClass = status === "upcoming" ? "t-o" : status === "ongoing" ? "t-l" : "t-d";
+  const statusLabel = status === "upcoming" ? (registrationOpen ? "Registration open" : "Registration closed") : statusNames[status];
+  const participants = tournament.participants.capacity
+    ? `${tournament.participants.registered} / ${tournament.participants.capacity}`
+    : `${tournament.participants.registered}`;
+  const spotsLeft = tournament.participants.capacity
+    ? Math.max(0, tournament.participants.capacity - tournament.participants.registered)
+    : null;
+
   return (
     <main>
-    <div className="w">
-      <section style={{paddingBottom: "24px"}}>
-        <div className="bn big gv shared-tournament-art" data-t="VALORANT">
-          <span className="tag t-o">
-            {"Registration open"}
-          </span>
-        </div>
-        <div style={{marginTop: "28px"}} className="in">
-          <p>
-            <b>
-              {"Valorant"}
-            </b>
-          </p>
-          <h1 style={{fontSize: "clamp(2.6rem,6vw,5rem)"}}>
-            {"Arena Masters Valorant Open"}
-          </h1>
-        </div>
-      </section>
-      <section style={{padding: "24px 0"}}>
-        <div className="g">
-          <div className="st lt rv">
-            <b style={{fontSize: "2.2rem"}}>
-              {"₹5,00,000"}
-            </b>
-            {"Prize pool"}
+      <div className="w">
+        <section style={{ paddingBottom: "24px" }}>
+          <div className={bannerClass} data-t={tournament.banner}>
+            <span className={`tag ${statusClass}`}>{statusLabel}</span>
           </div>
-          <div className="st lt rv">
-            <b style={{fontSize: "2.2rem"}}>
-              {"₹500"}
-            </b>
-            {"Entry fee"}
+          <div style={{ marginTop: "28px" }} className="in">
+            <p><b>{tournament.game}</b></p>
+            <h1 style={{ fontSize: "clamp(2.6rem,6vw,5rem)" }}>{tournament.name}</h1>
           </div>
-          <div className="st lt rv">
-            <b style={{fontSize: "2.2rem"}}>
-              {"18 Nov 2026"}
-            </b>
-            {"Registration deadline"}
+        </section>
+        <section style={{ padding: "24px 0" }}>
+          <div className="g">
+            <div className="st lt rv"><b style={{ fontSize: "2.2rem" }}>{currency(tournament.prizePool)}</b>Prize pool</div>
+            <div className="st lt rv"><b style={{ fontSize: "2.2rem" }}>{currency(tournament.entryFee)}</b>Entry fee</div>
+            <div className="st lt rv"><b style={{ fontSize: "1.5rem" }}>{dateTime(tournament.registrationDeadline)}</b>Registration deadline</div>
+            <div className="st lt rv"><b style={{ fontSize: "1.5rem" }}>{dateTime(tournament.start)}</b>Start date and time</div>
+            <div className="st lt rv"><b style={{ fontSize: "2.2rem" }}>{participants}</b>{tournament.participants.label} registered</div>
           </div>
-          <div className="st lt rv">
-            <b style={{fontSize: "2.2rem"}}>
-              {"22 Nov 2026"}
-            </b>
-            {"Start date"}
-          </div>
-          <div className="st lt rv">
-            <b style={{fontSize: "2.2rem"}}>
-              {"96 / 128"}
-            </b>
-            {"Teams registered"}
-          </div>
-        </div>
-      </section>
-      <section style={{padding: "24px 0"}}>
-        <div className="two">
-          <div>
-            <div className="card pad rv">
-              <h2>
-                {"About"}
-              </h2>
-              <p style={{marginTop: "12px"}}>
-                {"Eight days, 128 teams and one title. Arena Masters is the season opener for Valorant on GAME ARENA, with a double-elimination playoff and a live-streamed grand final."}
-              </p>
-            </div>
-            <div className="card pad rv">
-              <h2>
-                {"Format"}
-              </h2>
-              <p style={{marginTop: "12px"}}>
-                {"Qualifiers feed 32 teams into groups of four. The top two from each group enter a best-of-three playoff bracket. The grand final is best-of-five."}
-              </p>
-            </div>
-            <div className="card pad rv">
-              <h2>
-                {"Rules and requirements"}
-              </h2>
-              <ul className="rl" style={{marginTop: "12px"}}>
-                <li>
-                  {"Teams of five players plus one substitute."}
-                </li>
-                <li>
-                  {"All players need a verified GAME ARENA account."}
-                </li>
-                <li>
-                  {"Players must be 16 or older."}
-                </li>
-                <li>
-                  {"Teams check in 30 minutes before each match."}
-                </li>
-              </ul>
-            </div>
-            <div className="rv">
-              <h2 style={{marginBottom: "16px"}}>
-                {"Match schedule"}
-              </h2>
-              <div className="tw">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>
-                        {"Date"}
-                      </th>
-                      <th>
-                        {"Round"}
-                      </th>
-                      <th>
-                        {"Time"}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <b>
-                          {"22 Nov"}
-                        </b>
-                      </td>
-                      <td>
-                        {"Qualifiers"}
-                      </td>
-                      <td>
-                        {"4:00 PM IST"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <b>
-                          {"24 Nov"}
-                        </b>
-                      </td>
-                      <td>
-                        {"Group stage, day 1"}
-                      </td>
-                      <td>
-                        {"4:00 PM IST"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <b>
-                          {"25 Nov"}
-                        </b>
-                      </td>
-                      <td>
-                        {"Group stage, day 2"}
-                      </td>
-                      <td>
-                        {"4:00 PM IST"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <b>
-                          {"28 Nov"}
-                        </b>
-                      </td>
-                      <td>
-                        {"Quarterfinals"}
-                      </td>
-                      <td>
-                        {"5:00 PM IST"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <b>
-                          {"29 Nov"}
-                        </b>
-                      </td>
-                      <td>
-                        {"Semifinals"}
-                      </td>
-                      <td>
-                        {"5:00 PM IST"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <b>
-                          {"30 Nov"}
-                        </b>
-                      </td>
-                      <td>
-                        {"Grand final"}
-                      </td>
-                      <td>
-                        {"7:00 PM IST"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+        </section>
+        <section style={{ padding: "24px 0" }}>
+          <div className="two">
+            <div>
+              <div className="card pad rv"><h2>About</h2><p style={{ marginTop: "12px" }}>{tournament.description}</p></div>
+              <div className="card pad rv"><h2>Format</h2><p style={{ marginTop: "12px" }}>{tournament.format}</p></div>
+              <div className="card pad rv">
+                <h2>Rules and requirements</h2>
+                <ul className="rl" style={{ marginTop: "12px" }}>{tournament.rules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
               </div>
+              {tournament.schedule.length > 0 && <div className="rv">
+                <h2 style={{ marginBottom: "16px" }}>Match schedule</h2>
+                <div className="tw"><table>
+                  <thead><tr><th>Date</th><th>Round</th><th>Time</th></tr></thead>
+                  <tbody>{tournament.schedule.map((match) => <tr key={`${match.date}-${match.round}`}><td><b>{new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(new Date(`${match.date}T12:00:00`))}</b></td><td>{match.round}</td><td>{match.time}</td></tr>)}</tbody>
+                </table></div>
+              </div>}
+              {tournament.teams.length > 0 && <div className="rv">
+                <h2 style={{ marginBottom: "16px" }}>{status === "completed" ? "Participating teams" : "Participating teams"}</h2>
+                <div className="tms">{tournament.teams.map((team) => <div className="tm" key={team}><i>{team.split(/\s+/).map((word) => word[0]).join("").slice(0, 2).toUpperCase()}</i>{team}</div>)}</div>
+              </div>}
+              {tournament.results?.length > 0 && <div className="rv">
+                <h2 style={{ marginBottom: "16px" }}>Final results</h2>
+                <div className="tw"><table><thead><tr><th>Place</th><th>Team</th><th>Prize</th></tr></thead>
+                  <tbody>{tournament.results.map((result) => <tr key={result.place}><td><b>{result.place}</b></td><td>{result.team}</td><td>{currency(result.prize)}</td></tr>)}</tbody>
+                </table></div>
+              </div>}
             </div>
-            <div className="rv">
-              <h2 style={{marginBottom: "16px"}}>
-                {"Participating teams"}
-              </h2>
-              <div className="tms">
-                <div className="tm">
-                  <i>
-                    {"VG"}
-                  </i>
-                  {"Vanguard"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"OG"}
-                  </i>
-                  {"Orion Gaming"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"CF"}
-                  </i>
-                  {"Crimson Fang"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"NE"}
-                  </i>
-                  {"Nova Esports"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"TS"}
-                  </i>
-                  {"Titan Squad"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"HG"}
-                  </i>
-                  {"Hawkeye Gaming"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"PF"}
-                  </i>
-                  {"Phantom Five"}
-                </div>
-                <div className="tm">
-                  <i>
-                    {"AS"}
-                  </i>
-                  {"Apex Syndicate"}
-                </div>
-              </div>
-            </div>
+            <aside className="card reg sticky rv">
+              <small>{status === "upcoming" ? "Spots left" : "Tournament status"}</small>
+              <b>{status === "upcoming" && spotsLeft !== null ? spotsLeft : statusNames[status]}</b>
+              <p style={{ margin: "12px 0 20px" }}>
+                {status === "upcoming"
+                  ? `Registration ${registrationOpen ? `closes on ${dateTime(tournament.registrationDeadline)}` : "is closed"}. Entry fee ${currency(tournament.entryFee)}.`
+                  : status === "ongoing" ? `This tournament is in progress. ${participants} ${tournament.participants.label} registered.` : "This tournament is complete. Registration is closed."}
+              </p>
+              <button className="btn s" type="button" id="register-tournament" onClick={handleRegister} disabled={registered || !registrationOpen || !authReady}>
+                {!authReady ? "Checking session…" : registered ? "Already registered" : status === "completed" ? "Tournament completed" : status === "ongoing" ? "Tournament in progress" : registrationOpen ? "Register your team" : "Registration closed"}
+              </button>
+              <p id="registration-feedback" className={`registration-feedback${feedback?.error ? " registration-feedback-error" : ""}`} role="status" aria-live="polite">
+                {feedback && <>{feedback.message}{feedback.link && <> <Link to={feedback.to}>{feedback.link}</Link></>}</>}
+              </p>
+              {status === "upcoming" && <p style={{ marginTop: "14px", fontSize: ".9rem" }}>Already have an account? <Link to="/login" style={{ textDecoration: "underline" }}>Log in</Link></p>}
+            </aside>
           </div>
-          <aside className="card reg sticky rv">
-            <small>
-              {"Spots left"}
-            </small>
-            <b>
-              {"32"}
-            </b>
-            <p style={{margin: "12px 0 20px"}}>
-              {"Registration closes on 18 Nov 2026. Entry fee ₹500 per team."}
-            </p>
-            <button className="btn s" type="button" id="register-tournament" onClick={handleRegister} disabled={registered}>
-              {registered ? "Already registered" : "Register your team"}
-            </button>
-            <p id="registration-feedback" className={`registration-feedback${feedback?.error ? " registration-feedback-error" : ""}`} role="status" aria-live="polite">
-              {feedback && <>{feedback.message}{feedback.link && <> <Link to={feedback.to}>{feedback.link}</Link></>}</>}
-            </p>
-            <p style={{marginTop: "14px", fontSize: ".9rem"}}>
-              {"Already have an account? "}
-              <Link to="/login" style={{textDecoration: "underline"}}>
-                {"Log in"}
-              </Link>
-            </p>
-          </aside>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
     </main>
   );
 }

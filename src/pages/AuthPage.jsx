@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "../components/TransitionLink.jsx";
 import logo from "../../assets/logos/logo.svg";
-import { setCurrentUser } from "../data/gameArenaData.js";
+import { useAuth } from "../context/AuthContext.jsx";
 import { MainLayout } from "../components/MainLayout.jsx";
 import Home from "./Home.jsx";
 
@@ -17,6 +17,7 @@ function PasswordToggle({ inputId, visible, onToggle }) {
 
 export default function AuthPage({ initialMode }) {
   const navigate = useNavigate();
+  const { register, login: authenticate } = useAuth();
   const [mode, setMode] = useState(initialMode);
   const [switching, setSwitching] = useState(false);
   const [spin, setSpin] = useState("");
@@ -29,7 +30,8 @@ export default function AuthPage({ initialMode }) {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [registrationBusy, setRegistrationBusy] = useState(false);
-  const [homeRevealing, setHomeRevealing] = useState(false);
+  const [loginTransitioning, setLoginTransitioning] = useState(false);
+  const [homeRevealActive, setHomeRevealActive] = useState(false);
   const timers = useRef([]);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function AuthPage({ initialMode }) {
   }
 
   function changeMode(nextMode, isRegistrationAutoSwitch = false) {
-    if (switching || (registrationBusy && !isRegistrationAutoSwitch) || nextMode === mode || homeRevealing) return;
+    if (switching || (registrationBusy && !isRegistrationAutoSwitch) || nextMode === mode || loginTransitioning) return;
     window.scrollTo({ top: 0, behavior: "instant" });
     setSwitching(true);
     setPatternVisible(false);
@@ -70,6 +72,7 @@ export default function AuthPage({ initialMode }) {
 
   function updateRegistration(field, value) {
     setRegistration((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, submit: "" }));
     setRegistrationSuccess(false);
     if (attempted || errors[field]) validateRegistrationField(field, { ...registration, [field]: value });
     if (["password", "confirmation"].includes(field) && (attempted || registration.password || registration.confirmation)) {
@@ -83,7 +86,7 @@ export default function AuthPage({ initialMode }) {
     switch (field) {
       case "username":
         if (!username) message = "Enter a username.";
-        else if ([...username].length < 3) message = "Username must be at least 3 characters.";
+        else if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) message = "Use 3 to 24 characters: letters, numbers, or underscores.";
         break;
       case "email": {
         const email = values.email.trim();
@@ -111,7 +114,7 @@ export default function AuthPage({ initialMode }) {
     return !message;
   }
 
-  function submitRegistration(event) {
+  async function submitRegistration(event) {
     event.preventDefault();
     if (registrationBusy || switching) return;
     setAttempted(true);
@@ -121,31 +124,53 @@ export default function AuthPage({ initialMode }) {
       .map((field) => validateRegistrationField(field, values)).every(Boolean);
     if (!valid) return;
     setRegistrationBusy(true);
-    setRegistrationSuccess(true);
-    after(() => changeMode("login", true), 600);
+    setRegistrationSuccess(false);
+    try {
+      const result = await register(values);
+      if (!result.ok) {
+        const fieldNames = { confirmPassword: "confirmation", preferredGame: "game", termsAccepted: "terms" };
+        const mapped = Object.fromEntries(Object.entries(result.fields || {}).map(([key, message]) => [fieldNames[key] || key, message]));
+        setErrors((current) => ({ ...current, ...mapped, submit: result.message }));
+        setRegistrationBusy(false);
+        return;
+      }
+      setRegistrationBusy(false);
+      setRegistrationSuccess(true);
+      after(() => changeMode("login", true), 600);
+    } catch {
+      setErrors((current) => ({ ...current, submit: "The account service is unavailable right now. Please try again." }));
+      setRegistrationBusy(false);
+    }
   }
 
-  function submitLogin(event) {
+  async function submitLogin(event) {
     event.preventDefault();
-    if (switching || homeRevealing) return;
+    if (switching || loginTransitioning) return;
     const identifier = login.identifier.trim();
-    const accountKnown = ["demo@gamearena.gg", "shadowkira"].includes(identifier.toLowerCase());
     const nextErrors = {
-      identifier: !identifier ? "Enter your email or username." : !accountKnown ? "No demo account matches this email or username." : "",
-      loginPassword: !login.password ? "Enter your password." : accountKnown && login.password !== "Arena@2026" ? "The password does not match the demo account." : "",
+      identifier: !identifier ? "Enter your email or username." : "",
+      loginPassword: !login.password ? "Enter your password." : "",
     };
     setErrors((current) => ({ ...current, ...nextErrors }));
     if (nextErrors.identifier || nextErrors.loginPassword) return;
-    if (!setCurrentUser({ id: "demo@gamearena.gg", username: "ShadowKira" })) {
-      setErrors((current) => ({ ...current, identifier: "Could not save the demo login in this browser. Enable local storage and try again." }));
+    setLoginTransitioning(true);
+    let result;
+    try {
+      result = await authenticate(identifier, login.password);
+    } catch {
+      setLoginTransitioning(false);
+      setErrors((current) => ({ ...current, loginPassword: "The account service is unavailable right now. Please try again." }));
+      return;
+    }
+    if (!result.ok) {
+      setLoginTransitioning(false);
+      setErrors((current) => ({ ...current, identifier: result.message, loginPassword: result.message }));
       return;
     }
     setLoginSuccess(true);
-    after(() => {
-      setHomeRevealing(true);
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      after(() => navigate("/", { replace: true, state: { skipPageTransition: true } }), reduced ? 40 : 1050);
-    }, 300);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setHomeRevealActive(true);
+    after(() => navigate("/", { replace: true, state: { skipPageTransition: true, authTransition: "login-to-home" } }), reduced ? 40 : 750);
   }
 
   const heading = mode === "register" ? "Your squad is waiting." : "Back in the arena.";
@@ -153,34 +178,34 @@ export default function AuthPage({ initialMode }) {
   const formClass = (key) => `fld${registerError(key) ? " has-error" : ""}`;
   const loginFieldClass = (key) => `fld${registerError(key) ? " has-error" : ""}`;
 
-  return <div className={`au ${spin} ${patternVisible ? "pattern-visible" : ""} ${homeRevealing ? "auth-home-reveal" : ""}`} data-mode={mode} data-transitioning={switching ? "true" : undefined}>
-    {homeRevealing && <div className="home-underlay" aria-hidden="true"><MainLayout><Home /></MainLayout></div>}
+  return <div className={`au ${spin} ${patternVisible ? "pattern-visible" : ""}${homeRevealActive ? " auth-login-to-home" : ""}`} data-mode={mode} data-transitioning={switching ? "true" : undefined}>
+    <div className="home-underlay" aria-hidden="true" inert><MainLayout><Home /></MainLayout></div>
     <aside>
       <div className="shape s1" />
       <div className="auth-branding"><Link className="brand auth-brand" to="/"><img src={logo} alt="" width="112" height="112" /><span>GAME ARENA</span></Link></div>
-      <div className="auth-promo"><h1 id="auth-heading">{heading}</h1><small>Sample data. No real accounts are created.</small></div>
+      <div className="auth-promo"><h1 id="auth-heading">{heading}</h1><small>Secure your place in the arena.</small></div>
     </aside>
     <main>
       <form className={`fm auth-card auth-form${mode === "register" ? " is-active" : ""}`} data-form="register" aria-hidden={mode !== "register"} inert={mode !== "register" ? true : undefined} noValidate onSubmit={submitRegistration}>
-        <h2>Create account</h2><p>Join in under a minute. Use the demo login afterwards.</p>
-        <label className={formClass("username")}>Username<input id="reg-username" name="username" type="text" required minLength="3" placeholder="ShadowKira" autoComplete="username" aria-describedby="reg-username-error" aria-invalid={Boolean(registerError("username"))} value={registration.username} onChange={(event) => updateRegistration("username", event.target.value)} onBlur={() => { const value = registration.username.trim(); setRegistration((current) => ({ ...current, username: value })); if (attempted || value) validateRegistrationField("username", { ...registration, username: value }); }} /><small className="form-error" id="reg-username-error">{registerError("username")}</small></label>
+        <h2>Create account</h2><p>Join the arena and find your next tournament.</p>
+        <label className={formClass("username")}>Username<input id="reg-username" name="username" type="text" required minLength="3" maxLength="24" placeholder="Player_07" autoComplete="username" aria-describedby="reg-username-error" aria-invalid={Boolean(registerError("username"))} value={registration.username} onChange={(event) => updateRegistration("username", event.target.value)} onBlur={() => { const value = registration.username.trim(); setRegistration((current) => ({ ...current, username: value })); if (attempted || value) validateRegistrationField("username", { ...registration, username: value }); }} /><small className="form-error" id="reg-username-error">{registerError("username")}</small></label>
         <label className={formClass("email")}>Email<input id="reg-email" name="email" type="email" required placeholder="you@email.com" autoComplete="email" aria-describedby="reg-email-error" aria-invalid={Boolean(registerError("email"))} value={registration.email} onChange={(event) => updateRegistration("email", event.target.value)} onBlur={() => { if (attempted || registration.email) validateRegistrationField("email"); }} /><small className="form-error" id="reg-email-error">{registerError("email")}</small></label>
         <label className={formClass("password")}>Password<div className="password-control"><input id="reg-password" name="password" type={visiblePasswords.regPassword ? "text" : "password"} required minLength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Use at least 8 characters with an uppercase letter, a lowercase letter, and a number." placeholder="At least 8 characters" autoComplete="new-password" aria-describedby="reg-password-error" aria-invalid={Boolean(registerError("password"))} value={registration.password} onChange={(event) => updateRegistration("password", event.target.value)} onBlur={() => { if (attempted || registration.password) validateRegistrationField("password"); }} /><PasswordToggle inputId="reg-password" visible={Boolean(visiblePasswords.regPassword)} onToggle={() => togglePassword("regPassword")} /></div><small className="form-error" id="reg-password-error">{registerError("password")}</small></label>
         <label className={formClass("confirmation")}>Confirm password<div className="password-control"><input id="reg-confirm-password" name="confirm-password" type={visiblePasswords.regConfirmation ? "text" : "password"} required minLength="8" placeholder="Repeat password" autoComplete="new-password" aria-describedby="reg-confirm-password-error" aria-invalid={Boolean(registerError("confirmation"))} value={registration.confirmation} onChange={(event) => updateRegistration("confirmation", event.target.value)} onBlur={() => { if (attempted || registration.confirmation) validateRegistrationField("confirmation"); }} /><PasswordToggle inputId="reg-confirm-password" visible={Boolean(visiblePasswords.regConfirmation)} onToggle={() => togglePassword("regConfirmation")} /></div><small className="form-error" id="reg-confirm-password-error">{registerError("confirmation")}</small></label>
         <label className={formClass("game")}>Preferred game<select id="reg-game" name="game" required aria-describedby="reg-game-error" aria-invalid={Boolean(registerError("game"))} value={registration.game} onChange={(event) => { updateRegistration("game", event.target.value); if (attempted) validateRegistrationField("game", { ...registration, game: event.target.value }); }}><option value="">Choose a game</option><option value="Valorant">Valorant</option><option value="BGMI">BGMI</option><option value="Counter-Strike 2">Counter-Strike 2</option></select><small className="form-error" id="reg-game-error">{registerError("game")}</small></label>
         <div className="row terms-row"><label className={`terms-field${registerError("terms") ? " has-error" : ""}`}><span><input id="reg-terms" name="terms" type="checkbox" required checked={registration.terms} aria-describedby="reg-terms-error" aria-invalid={Boolean(registerError("terms"))} onChange={(event) => { updateRegistration("terms", event.target.checked); if (attempted) validateRegistrationField("terms", { ...registration, terms: event.target.checked }); }} /> I accept the terms and conditions</span><small className="form-error" id="reg-terms-error">{registerError("terms")}</small></label></div>
         <button className="btn p" type="submit" disabled={registrationBusy}>{registrationBusy ? "Please wait…" : "Create account"}</button>
-        <p className={`form-success${registrationSuccess ? " is-visible" : ""}`} role="status" aria-live="polite"><span className="success-check" aria-hidden="true">✓</span><span><strong>{registrationSuccess ? "Account created successfully! You can now log in to GAME ARENA." : ""}</strong><small>Demo only. Your details are not stored.</small></span></p>
+        {registerError("submit") && <small className="form-error auth-submit-error" role="alert">{registerError("submit")}</small>}
+        <p className={`form-success${registrationSuccess ? " is-visible" : ""}`} role="status" aria-live="polite"><span className="success-check" aria-hidden="true">✓</span><span><strong>{registrationSuccess ? "Account created successfully! You can now log in to GAME ARENA." : ""}</strong><small>Your account is saved in this browser.</small></span></p>
         <p className="alt"><a className="auth-switch" href="/login" onClick={(event) => { event.preventDefault(); changeMode("login"); }}>Log in</a></p>
       </form>
 
       <form className={`fm auth-card auth-form${mode === "login" ? " is-active" : ""}`} data-form="login" aria-hidden={mode !== "login"} inert={mode !== "login" ? true : undefined} noValidate onSubmit={submitLogin}>
         <h2>Log in</h2><p>Welcome back. Pick up where you left off.</p>
-        <div className="demo"><b>Demo account</b><br />Email: demo@gamearena.gg<br />Password: Arena@2026</div>
-        <label className={loginFieldClass("identifier")}>Email or username<input id="login-identifier" name="username" type="text" required pattern="demo@gamearena\.gg|ShadowKira" title="Use the demo account: demo@gamearena.gg" autoComplete="username" placeholder="demo@gamearena.gg" aria-describedby="login-identifier-error" aria-invalid={Boolean(registerError("identifier"))} value={login.identifier} onChange={(event) => { setLogin((current) => ({ ...current, identifier: event.target.value })); setErrors((current) => ({ ...current, identifier: "" })); setLoginSuccess(false); }} /><small className="form-error" id="login-identifier-error">{registerError("identifier")}</small></label>
-        <label className={loginFieldClass("loginPassword")}>Password<div className="password-control"><input id="login-password" name="password" type={visiblePasswords.loginPassword ? "text" : "password"} required pattern="Arena@2026" title="Use the demo password: Arena@2026" autoComplete="current-password" placeholder="Your password" aria-describedby="login-password-error" aria-invalid={Boolean(registerError("loginPassword"))} value={login.password} onChange={(event) => { setLogin((current) => ({ ...current, password: event.target.value })); setErrors((current) => ({ ...current, loginPassword: "" })); setLoginSuccess(false); }} /><PasswordToggle inputId="login-password" visible={Boolean(visiblePasswords.loginPassword)} onToggle={() => togglePassword("loginPassword")} /></div><small className="form-error" id="login-password-error">{registerError("loginPassword")}</small></label>
+        <label className={loginFieldClass("identifier")}>Email or username<input id="login-identifier" name="username" type="text" required autoComplete="username" placeholder="Enter your email or username" aria-describedby="login-identifier-error" aria-invalid={Boolean(registerError("identifier"))} value={login.identifier} onChange={(event) => { setLogin((current) => ({ ...current, identifier: event.target.value })); setErrors((current) => ({ ...current, identifier: "" })); setLoginSuccess(false); }} /><small className="form-error" id="login-identifier-error">{registerError("identifier")}</small></label>
+        <label className={loginFieldClass("loginPassword")}>Password<div className="password-control"><input id="login-password" name="password" type={visiblePasswords.loginPassword ? "text" : "password"} required autoComplete="current-password" placeholder="Your password" aria-describedby="login-password-error" aria-invalid={Boolean(registerError("loginPassword"))} value={login.password} onChange={(event) => { setLogin((current) => ({ ...current, password: event.target.value })); setErrors((current) => ({ ...current, loginPassword: "" })); setLoginSuccess(false); }} /><PasswordToggle inputId="login-password" visible={Boolean(visiblePasswords.loginPassword)} onToggle={() => togglePassword("loginPassword")} /></div><small className="form-error" id="login-password-error">{registerError("loginPassword")}</small></label>
         <div className="row"><label><input type="checkbox" checked={login.remember} onChange={(event) => setLogin((current) => ({ ...current, remember: event.target.checked }))} /> Remember me</label><a href="mailto:support@gamearena.gg">Forgot password?</a></div>
-        <button className="btn p" type="submit">Log in</button>
+        <button className="btn p" type="submit" disabled={loginTransitioning}>Log in</button>
         <p className={`form-success login-success${loginSuccess ? " is-visible" : ""}`} role="status" aria-live="polite"><span className="success-check" aria-hidden="true">✓</span><span><strong>Login successful. Opening GAME ARENA…</strong></span></p>
         <p className="alt"><a className="auth-switch" href="/register" onClick={(event) => { event.preventDefault(); changeMode("register"); }}>Create an account</a></p>
       </form>

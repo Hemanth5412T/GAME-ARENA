@@ -1,16 +1,40 @@
 import { Link } from "../components/TransitionLink.jsx";
 import { useEffect, useState } from "react";
-import { getCurrentUser, getRegistrationsForUser, subscribeToData } from "../data/gameArenaData.js";
+import { getRegistrationsForUser, isUnregistrationOpen, subscribeToData, unregisterTournament } from "../data/gameArenaData.js";
+import { getTournamentById } from "../data/tournaments.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Activities() {
-  const [registrations, setRegistrations] = useState(() => {
-    const user = getCurrentUser();
-    return user ? getRegistrationsForUser(user.id) : [];
-  });
-  useEffect(() => subscribeToData(() => {
-    const user = getCurrentUser();
-    setRegistrations(user ? getRegistrationsForUser(user.id) : []);
-  }), []);
+  const { user, status: authStatus } = useAuth();
+  const [registrations, setRegistrations] = useState(() => user ? getRegistrationsForUser(user.id) : []);
+  const [now, setNow] = useState(() => new Date());
+  const [pendingUnregistration, setPendingUnregistration] = useState(null);
+  const [unregistrationFeedback, setUnregistrationFeedback] = useState("");
+  useEffect(() => {
+    const refresh = () => setRegistrations(user ? getRegistrationsForUser(user.id) : []);
+    refresh();
+    return subscribeToData(refresh);
+  }, [user]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function confirmUnregistration() {
+    if (!pendingUnregistration) return;
+    const result = unregisterTournament(pendingUnregistration.tournamentId, user?.id, new Date());
+    if (result.ok) {
+      setPendingUnregistration(null);
+      setUnregistrationFeedback("");
+      return;
+    }
+    if (result.reason === "closed") {
+      setNow(new Date());
+      return;
+    }
+    setPendingUnregistration(null);
+    setUnregistrationFeedback("This tournament registration could not be removed. Please refresh and try again.");
+  }
   const monthMatches = ["2026-11-01T10:42:00+05:30", "2026-10-28T21:05:00+05:30"]
     .map((date, index) => ({ date: new Date(date), won: index === 0 }))
     .filter(({ date }) => date.getFullYear() === new Date().getFullYear() && date.getMonth() === new Date().getMonth());
@@ -20,13 +44,19 @@ export default function Activities() {
     tournaments: registrations.length,
     badges: 1,
   };
+  const pendingCanUnregister = pendingUnregistration
+    ? isUnregistrationOpen(pendingUnregistration.tournamentStart, now)
+    : false;
   const timeline = [
     { at: "2026-11-01T10:42:00+05:30", type: "match", result: "win", title: "Won vs Orion Gaming", detail: "Valorant · 13–9 on Ascent" },
     { at: "2026-10-28T21:05:00+05:30", type: "match", result: "loss", title: "Lost vs Titan Squad", detail: "Valorant · 10–13 on Bind" },
     { at: "2026-10-25T18:30:00+05:30", type: "badge", result: "win", title: "Badge unlocked: Clutch Master", detail: "Achievement" },
-    { at: "2026-10-20T23:20:00+05:30", type: "tournament-result", result: "win", title: "Champions of Winter Clash Valorant", detail: "Tournament result · ₹40,000 won" },
-    { at: "2026-10-12T19:00:00+05:30", type: "tournament-result", result: "win", title: "Placed 4th in Mobile Mayhem BGMI", detail: "Tournament result · ₹15,000 won" },
-    ...registrations.map((registration) => ({ at: registration.registeredAt, type: "tournament-registration", result: "win", title: "REGISTERED FOR TOURNAMENT", detail: `${registration.game || "Tournament"} · ${registration.name} · Registration successful` })),
+    { at: "2026-10-20T23:20:00+05:30", type: "tournament-result", result: "win", title: `Champions of ${getTournamentById("winter-clash-valorant")?.name || "Winter Clash Valorant"}`, detail: "Tournament result · ₹40,000 won" },
+    { at: "2026-10-12T19:00:00+05:30", type: "tournament-result", result: "win", title: `Placed 4th in ${getTournamentById("mobile-mayhem-bgmi")?.name || "Mobile Mayhem BGMI"}`, detail: "Tournament result · ₹15,000 won" },
+    ...registrations.map((registration) => {
+      const tournament = getTournamentById(registration.tournamentId);
+      return { at: registration.registeredAt, type: "tournament-registration", result: "win", title: "REGISTERED FOR TOURNAMENT", detail: `${tournament?.game || registration.game || "Tournament"} · ${tournament?.name || registration.name} · Registration successful` };
+    }),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const formatDate = (value) => {
     const date = new Date(value);
@@ -79,29 +109,51 @@ export default function Activities() {
           <div id="registered-tournament-list" className="g">
             {registrations.map((registration) => {
               const registeredDate = new Date(registration.registeredAt);
-              const start = Date.parse(registration.tournamentStart);
-              const end = Date.parse(registration.tournamentEnd);
+              const tournament = getTournamentById(registration.tournamentId);
+              const tournamentName = tournament?.name || registration.name;
+              const tournamentGame = tournament?.game || registration.game || "—";
+              const tournamentStart = tournament?.start || registration.tournamentStart;
+              const start = Date.parse(tournamentStart);
+              const end = Date.parse(tournament?.end || registration.tournamentEnd);
               const status = registration.tournamentStatus === "Cancelled" ? "Cancelled"
                 : Number.isFinite(start) && Date.now() < start ? "Upcoming"
                   : Number.isFinite(end) && Date.now() > end ? "Completed"
                     : Number.isFinite(start) && Date.now() >= start ? "Live" : (registration.tournamentStatus || "Upcoming");
-              const route = registration.tournamentId
-                ? `/tournament/${registration.tournamentId}`
-                : "/tournament/arena-masters-valorant-open";
-              return <article className="card pad registered-tournament-card" key={`${registration.userId}-${registration.tournamentId}`}>
-                <div className="registered-tournament-header"><h3>{registration.name}</h3><span className={`registration-status-badge status-${status.toLowerCase()}`}>{status}</span></div>
+              const route = registration.tournamentId ? `/tournament/${registration.tournamentId}` : null;
+              const canUnregister = isUnregistrationOpen(tournamentStart, now);
+              return <article className="card pad registered-tournament-card" data-tournament-id={registration.tournamentId} key={`${registration.userId}-${registration.tournamentId}`}>
+                <div className="registered-tournament-header"><h3>{tournamentName}</h3><span className={`registration-status-badge status-${status.toLowerCase()}`}>{status}</span></div>
                 <div className="registered-tournament-meta">
-                  <p><b>Game: </b>{registration.game || "—"}</p>
+                  <p><b>Game: </b>{tournamentGame}</p>
                   <p><b>Registered: </b>{Number.isNaN(registeredDate.getTime()) ? "Date unavailable" : registeredDate.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>
-                  <p><b>Tournament: </b>{registration.tournamentStart ? new Date(registration.tournamentStart).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Date unavailable"}</p>
+                  <p><b>Tournament: </b>{tournamentStart ? new Date(tournamentStart).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Date unavailable"}</p>
                   <p><b>Registration: </b>{registration.registrationStatus}</p>
                   {registration.entryFee !== null && registration.entryFee !== undefined && <p><b>Entry fee: </b>{registration.entryFee === 0 ? "Free" : `₹${Number(registration.entryFee).toLocaleString("en-IN")}`}</p>}
                 </div>
-                <Link className="btn o sm registered-tournament-link" to={route}>View Tournament</Link>
+                <div className="registered-tournament-actions">
+                  {route && <Link className="btn o sm registered-tournament-link" to={route}>View Tournament</Link>}
+                  <button className="btn sm unregister-button" type="button" disabled={!canUnregister} aria-label={`Unregister from ${registration.name}`} onClick={() => { setPendingUnregistration(registration); setUnregistrationFeedback(""); }}>Unregister</button>
+                  {!canUnregister && <span className="unregistration-closed">Unregistration closed</span>}
+                  {unregistrationFeedback && <span className="unregistration-feedback" role="status">{unregistrationFeedback}</span>}
+                </div>
               </article>;
             })}
           </div>
-          <div id="registered-tournament-empty" className="registered-empty card pad" hidden={registrations.length > 0}>
+          {pendingUnregistration && <div className="unregister-confirm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingUnregistration(null); }}>
+            <section className="unregister-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="unregister-dialog-title" aria-describedby="unregister-dialog-description" onKeyDown={(event) => { if (event.key === "Escape") setPendingUnregistration(null); }}>
+              <h2 id="unregister-dialog-title">Unregister from tournament?</h2>
+              <p id="unregister-dialog-description">Are you sure you want to unregister from <strong>{pendingUnregistration.name}</strong>? This will cancel your tournament registration.</p>
+              {!pendingCanUnregister && <p className="unregistration-closed" role="status">Unregistration closed</p>}
+              {unregistrationFeedback && <p className="unregistration-feedback" role="status">{unregistrationFeedback}</p>}
+              <div className="unregister-confirm-actions">
+                <button className="btn p sm" type="button" disabled={!pendingCanUnregister} onClick={confirmUnregistration}>Confirm Unregister</button>
+                <button className="btn o sm" type="button" autoFocus onClick={() => setPendingUnregistration(null)}>Keep Registration</button>
+              </div>
+            </section>
+          </div>}
+          {authStatus === "loading" && <p className="card pad" role="status">Restoring your account session…</p>}
+          {authStatus === "unavailable" && <p className="card pad" role="status">Account storage is unavailable in this browser.</p>}
+          <div id="registered-tournament-empty" className="registered-empty card pad" hidden={authStatus === "loading" || authStatus === "unavailable" || registrations.length > 0 || !user}>
             <h3>
               {"No tournament registrations yet."}
             </h3>

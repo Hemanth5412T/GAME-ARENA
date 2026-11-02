@@ -1,5 +1,7 @@
-import { useLocation } from "react-router-dom";
+import { useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "./TransitionLink.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import logo from "../../assets/logos/logo.svg";
 
 const navigation = [
@@ -13,14 +15,43 @@ const navigation = [
 
 export function MainNav() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user, status, logout } = useAuth();
+  const [logoutPending, setLogoutPending] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const logoutStarted = useRef(false);
   const current = pathname.startsWith("/tournament/") ? "/search-events" : pathname;
+
+  function handleLogout() {
+    if (logoutStarted.current || logoutPending) return;
+    logoutStarted.current = true;
+    setLogoutPending(true);
+    setLogoutError("");
+    try {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.documentElement.dataset.authTransition = "logout";
+      logout();
+      navigate("/login", { replace: true, viewTransition: true, state: { skipPageTransition: true, authTransition: "logout" } });
+      window.setTimeout(() => { delete document.documentElement.dataset.authTransition; }, reduced ? 80 : 900);
+    } catch (error) {
+      logoutStarted.current = false;
+      setLogoutError(error.message || "Could not sign out. Please try again.");
+    } finally {
+      setLogoutPending(false);
+    }
+  }
+
   return (
     <header className="nav">
       <div className="w">
         <Link className="brand" to="/"><img src={logo} alt="" width="40" height="40" />GAME ARENA</Link>
         <nav aria-label="Main"><ul>{navigation.map(([label, href]) => (
           <li key={href}><Link to={href} aria-current={current === href ? "page" : undefined}>{label}</Link></li>
-        ))}</ul></nav>
+        ))}<li className="nav-auth-item">{status === "loading" ? <span className="nav-auth-button" aria-busy="true">Login</span> : user
+          ? <button className="nav-auth-button" type="button" disabled={logoutPending} onClick={handleLogout}>{logoutPending ? "Logging out…" : "Logout"}</button>
+          : <Link className="nav-auth-button" to="/login">Login</Link>}
+        {logoutError && <small className="nav-auth-error" role="alert">{logoutError}</small>}
+        </li></ul></nav>
       </div>
     </header>
   );

@@ -1,4 +1,13 @@
 import { Link } from "../components/TransitionLink.jsx";
+import { tournaments } from "../data/tournaments.js";
+
+const featuredTournaments = [
+  tournaments.find((tournament) => tournament.id === "arena-masters-valorant-open"),
+  tournaments.find((tournament) => tournament.id === "bgmi-pro-series-season-4"),
+  tournaments.find((tournament) => tournament.id === "cs2-iron-cup"),
+];
+const currency = (value) => value === 0 ? "Free" : `₹${Number(value).toLocaleString("en-IN")}`;
+const closeDate = (tournament) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(tournament.registrationDeadline));
 
 export default function Home() {
   return (
@@ -66,15 +75,15 @@ export default function Home() {
             </div>
             <div className="pad">
               <p>
-                {"Valorant"}
+                {featuredTournaments[0].game}
               </p>
               <h3>
-                {"Arena Masters Valorant Open"}
+                {featuredTournaments[0].name}
               </h3>
               <div className="meta">
                 <div>
                   <b>
-                    {"₹5,00,000"}
+                    {currency(featuredTournaments[0].prizePool)}
                   </b>
                   <small>
                     {"Prize pool"}
@@ -82,7 +91,7 @@ export default function Home() {
                 </div>
                 <div>
                   <b>
-                    {"₹500"}
+                    {currency(featuredTournaments[0].entryFee)}
                   </b>
                   <small>
                     {"Entry fee"}
@@ -90,7 +99,7 @@ export default function Home() {
                 </div>
                 <div>
                   <b>
-                    {"96 / 128 teams"}
+                    {`${featuredTournaments[0].participants.registered} / ${featuredTournaments[0].participants.capacity} teams`}
                   </b>
                   <small>
                     {"Participants"}
@@ -98,14 +107,14 @@ export default function Home() {
                 </div>
                 <div>
                   <b style={{fontSize: "1.05rem"}}>
-                    {"Closes 18 Nov 2026"}
+                    {`Closes ${closeDate(featuredTournaments[0])}`}
                   </b>
                   <small>
                     {"Date"}
                   </small>
                 </div>
               </div>
-              <Link className="btn p sm" to="/tournament/arena-masters-valorant-open" state={{ transitionType: "shared" }}>
+              <Link className="btn p sm" to={`/tournament/${featuredTournaments[0].id}`} state={{ transitionType: "shared" }}>
                 {"View details"}
               </Link>
             </div>
@@ -118,15 +127,15 @@ export default function Home() {
             </div>
             <div className="pad">
               <p>
-                {"BGMI"}
+                {featuredTournaments[1].game}
               </p>
               <h3>
-                {"BGMI Pro Series Season 4"}
+                {featuredTournaments[1].name}
               </h3>
               <div className="meta">
                 <div>
                   <b>
-                    {"₹3,00,000"}
+                    {currency(featuredTournaments[1].prizePool)}
                   </b>
                   <small>
                     {"Prize pool"}
@@ -134,7 +143,7 @@ export default function Home() {
                 </div>
                 <div>
                   <b>
-                    {"₹300"}
+                    {currency(featuredTournaments[1].entryFee)}
                   </b>
                   <small>
                     {"Entry fee"}
@@ -142,7 +151,7 @@ export default function Home() {
                 </div>
                 <div>
                   <b>
-                    {"100 squads"}
+                    {`${featuredTournaments[1].participants.registered} ${featuredTournaments[1].participants.label}`}
                   </b>
                   <small>
                     {"Participants"}
@@ -157,7 +166,7 @@ export default function Home() {
                   </small>
                 </div>
               </div>
-              <Link className="btn p sm" to="/tournament/arena-masters-valorant-open">
+              <Link className="btn p sm" to={`/tournament/${featuredTournaments[1].id}`}>
                 {"View details"}
               </Link>
             </div>
@@ -170,15 +179,15 @@ export default function Home() {
             </div>
             <div className="pad">
               <p>
-                {"Counter-Strike 2"}
+                {featuredTournaments[2].game}
               </p>
               <h3>
-                {"CS2 Iron Cup"}
+                {featuredTournaments[2].name}
               </h3>
               <div className="meta">
                 <div>
                   <b>
-                    {"₹2,50,000"}
+                    {currency(featuredTournaments[2].prizePool)}
                   </b>
                   <small>
                     {"Prize pool"}
@@ -186,7 +195,7 @@ export default function Home() {
                 </div>
                 <div>
                   <b>
-                    {"₹400"}
+                    {currency(featuredTournaments[2].entryFee)}
                   </b>
                   <small>
                     {"Entry fee"}
@@ -194,7 +203,7 @@ export default function Home() {
                 </div>
                 <div>
                   <b>
-                    {"48 / 64 teams"}
+                    {`${featuredTournaments[2].participants.registered} / ${featuredTournaments[2].participants.capacity} teams`}
                   </b>
                   <small>
                     {"Participants"}
@@ -202,14 +211,14 @@ export default function Home() {
                 </div>
                 <div>
                   <b style={{fontSize: "1.05rem"}}>
-                    {"Closes 28 Nov 2026"}
+                    {`Closes ${closeDate(featuredTournaments[2])}`}
                   </b>
                   <small>
                     {"Date"}
                   </small>
                 </div>
               </div>
-              <Link className="btn p sm" to="/tournament/arena-masters-valorant-open">
+              <Link className="btn p sm" to={`/tournament/${featuredTournaments[2].id}`}>
                 {"View details"}
               </Link>
             </div>

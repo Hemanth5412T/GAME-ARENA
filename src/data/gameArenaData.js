@@ -1,4 +1,5 @@
-const SESSION_KEY = "gameArena.currentUser";
+import { getTournamentById, isTournamentRegistrationOpen } from "./tournaments.js";
+
 const REGISTRATIONS_KEY = "gameArena.tournamentRegistrations";
 
 function readJSON(key, fallback) {
@@ -10,11 +11,6 @@ function readJSON(key, fallback) {
   }
 }
 
-export function getCurrentUser() {
-  const user = readJSON(SESSION_KEY, null);
-  return user && typeof user.id === "string" ? user : null;
-}
-
 export function getRegistrationsForUser(userId) {
   if (!userId) return [];
   const registrations = readJSON(REGISTRATIONS_KEY, []);
@@ -24,28 +20,30 @@ export function getRegistrationsForUser(userId) {
     .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
 }
 
-export function setCurrentUser(user) {
-  if (!user?.id) return false;
-  try {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ id: String(user.id), username: String(user.username || "") }));
-    window.dispatchEvent(new CustomEvent("gamearena:user-updated"));
-    return true;
-  } catch {
-    return false;
-  }
+const UNREGISTER_CUTOFF_MS = 3 * 24 * 60 * 60 * 1000;
+
+export function getUnregisterDeadline(tournamentStart) {
+  const startTime = new Date(tournamentStart).getTime();
+  return Number.isFinite(startTime) ? new Date(startTime - UNREGISTER_CUTOFF_MS) : null;
 }
 
-export function registerTournament(tournament) {
-  const user = getCurrentUser();
-  if (!user) return { ok: false, reason: "login-required" };
+export function isUnregistrationOpen(tournamentStart, now = new Date()) {
+  const deadline = getUnregisterDeadline(tournamentStart);
+  const nowTime = new Date(now).getTime();
+  return Boolean(deadline) && Number.isFinite(nowTime) && nowTime < deadline.getTime();
+}
+
+export function registerTournament(tournament, userId) {
+  if (!userId) return { ok: false, reason: "login-required" };
   if (!tournament?.id || !tournament?.name) return { ok: false, reason: "invalid-tournament" };
+  if (!isTournamentRegistrationOpen(tournament)) return { ok: false, reason: "registration-closed" };
   try {
     const registrations = readJSON(REGISTRATIONS_KEY, []);
     const list = Array.isArray(registrations) ? registrations : [];
-    const existing = list.find((item) => item.userId === user.id && item.tournamentId === tournament.id);
+    const existing = list.find((item) => item.userId === userId && item.tournamentId === tournament.id);
     if (existing) return { ok: false, reason: "duplicate", registration: existing };
     const registration = {
-      userId: user.id,
+      userId,
       tournamentId: tournament.id,
       name: tournament.name,
       game: tournament.game,
@@ -66,9 +64,29 @@ export function registerTournament(tournament) {
   }
 }
 
+export function unregisterTournament(tournamentId, userId, now = new Date()) {
+  if (!userId) return { ok: false, reason: "login-required" };
+  if (!tournamentId) return { ok: false, reason: "invalid-tournament" };
+  try {
+    const stored = readJSON(REGISTRATIONS_KEY, []);
+    const registrations = Array.isArray(stored) ? stored : [];
+    const index = registrations.findIndex((item) => item?.userId === userId && item?.tournamentId === tournamentId && item.registrationStatus === "Registered");
+    if (index < 0) return { ok: false, reason: "not-registered" };
+    const registration = registrations[index];
+    const tournamentStart = getTournamentById(tournamentId)?.start || registration.tournamentStart;
+    if (!isUnregistrationOpen(tournamentStart, now)) return { ok: false, reason: "closed" };
+    const remaining = registrations.filter((_, itemIndex) => itemIndex !== index);
+    localStorage.setItem(REGISTRATIONS_KEY, JSON.stringify(remaining));
+    window.dispatchEvent(new CustomEvent("gamearena:registration-updated", { detail: { type: "unregistered", registration } }));
+    return { ok: true, registration };
+  } catch {
+    return { ok: false, reason: "storage-unavailable" };
+  }
+}
+
 export function subscribeToData(callback) {
   const onStorage = (event) => {
-    if ([SESSION_KEY, REGISTRATIONS_KEY].includes(event.key)) callback();
+    if (event.key === REGISTRATIONS_KEY) callback();
   };
   window.addEventListener("storage", onStorage);
   window.addEventListener("gamearena:registration-updated", callback);

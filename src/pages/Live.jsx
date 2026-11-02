@@ -19,7 +19,7 @@ export default function Live() {
               <span className="tag t-l">
                 {"Live · 8,412 watching"}
               </span>
-              <Link className="play" to="/tournament/arena-masters-valorant-open" aria-label="Play stream">
+              <Link className="play" to="/tournament/inferno-invitational" aria-label="Play stream">
               </Link>
               <div className="sb">
                 <span>
@@ -171,7 +171,7 @@ export default function Live() {
                     </small>
                   </div>
                 </div>
-                <Link className="btn p sm" to="/tournament/arena-masters-valorant-open">
+                <Link className="btn p sm" to="/tournament/inferno-invitational">
                   {"View details"}
                 </Link>
               </div>

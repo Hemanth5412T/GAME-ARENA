@@ -65,17 +65,8 @@
   scrollbar-gutter: auto;
 }
 .fallback-transition-layer { position: absolute; inset: 0; }
-.home-underlay {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: auto;
-  border: 0;
-  background: var(--b);
-  pointer-events: none;
-}
+.au > aside { view-transition-name: auth-panel-left; }
+.au > main { view-transition-name: auth-panel-right; }
 
 .shared-tournament-art { view-transition-name: arena-masters-artwork; }
 
@@ -104,6 +95,41 @@
 
 :root[data-back-out-direction="right"]::view-transition-old(root) { animation-name: route-page-exit-right; }
 :root[data-back-in-direction="left"]::view-transition-new(root) { animation-name: route-page-enter-from-left; }
+
+:root[data-auth-transition="logout"]::view-transition-old(root),
+:root[data-auth-transition="logout"]::view-transition-old(app-nav) {
+  animation: auth-site-zoom-out 460ms cubic-bezier(.55, 0, .85, .36) both;
+}
+:root[data-auth-transition="logout"]::view-transition-new(root) {
+  animation: auth-login-root-in 300ms ease-out both;
+}
+:root[data-auth-transition="logout"]::view-transition-new(auth-panel-left) {
+  animation: auth-panel-enter-left 620ms cubic-bezier(.77, 0, .175, 1) 110ms both;
+}
+:root[data-auth-transition="logout"]::view-transition-new(auth-panel-right) {
+  animation: auth-panel-enter-right 620ms cubic-bezier(.77, 0, .175, 1) 110ms both;
+}
+
+::view-transition-group(auth-panel-left),
+::view-transition-group(auth-panel-right) { z-index: 3; }
+::view-transition-group(app-nav) { z-index: 2; }
+
+@keyframes auth-panel-enter-left {
+  from { opacity: 1; transform: translateX(-100vw); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes auth-panel-enter-right {
+  from { opacity: 1; transform: translateX(100vw); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes auth-site-zoom-out {
+  from { opacity: 1; transform: scale(1); transform-origin: center center; }
+  to { opacity: 0; transform: scale(.9); transform-origin: center center; }
+}
+@keyframes auth-login-root-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 ::view-transition-group(arena-masters-artwork) {
   z-index: 3;
@@ -144,6 +170,20 @@
   }
   :root[data-back-out-direction="right"]::view-transition-old(root) { animation-name: route-page-exit-right-mobile; }
   :root[data-back-in-direction="left"]::view-transition-new(root) { animation-name: route-page-enter-from-left-mobile; }
+  :root[data-auth-transition="logout"]::view-transition-new(auth-panel-left) {
+    animation-name: auth-panel-enter-top;
+  }
+  :root[data-auth-transition="logout"]::view-transition-new(auth-panel-right) {
+    animation-name: auth-panel-enter-bottom;
+  }
+  @keyframes auth-panel-enter-top {
+    from { opacity: 1; transform: translateY(-100vh); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes auth-panel-enter-bottom {
+    from { opacity: 1; transform: translateY(100vh); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   @keyframes route-page-exit-left-mobile {
     from { opacity: 1; transform: translateX(0) scale(1) translateY(0); }
     to { opacity: 0; transform: translateX(-4vw) scale(.985) translateY(-8px); }
@@ -167,5 +207,6 @@
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
   }
 }

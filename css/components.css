@@ -800,6 +800,68 @@ main:has(#g-c:checked) .grp:not(:has(.gc)) {
 
 .registered-tournament-link { justify-self: start }
 
+.registered-tournament-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.registered-tournament-actions .registered-tournament-link { margin: 0 }
+
+.unregister-button {
+    background: #eda6a3;
+    color: #192a56;
+    border-color: #192a56
+}
+
+.unregister-button:hover:not(:disabled) {
+    background: #d98e8b;
+    color: #192a56
+}
+
+.unregistration-closed,
+.unregistration-feedback {
+    font-size: .82rem;
+    line-height: 1.35;
+    color: var(--n)
+}
+
+.unregistration-feedback { flex-basis: 100% }
+
+.unregister-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: #101a36a8
+}
+
+.unregister-confirm-dialog {
+    width: min(100%, 460px);
+    padding: 28px;
+    border: 1px solid #192a5626;
+    border-radius: 18px;
+    background: #f3eee4;
+    color: #192a56;
+    box-shadow: 0 24px 70px #101a3652
+}
+
+.unregister-confirm-dialog h2 { margin: 0 0 12px; font-size: 1.35rem }
+.unregister-confirm-dialog p { margin: 0; line-height: 1.55 }
+
+.unregister-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px
+}
+
+.unregister-confirm-actions .btn { min-height: 40px }
+
 .registered-empty {
     display: grid;
     justify-items: center;

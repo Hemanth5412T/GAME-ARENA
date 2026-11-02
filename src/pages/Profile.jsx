@@ -1,17 +1,22 @@
 import { Link } from "../components/TransitionLink.jsx";
+import { getTournamentById } from "../data/tournaments.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Profile() {
+  const { user } = useAuth();
+  const username = user?.username || "ShadowKira";
+  const initials = username.slice(0, 2).toUpperCase();
   return (
     <main>
     <div className="w">
       <section style={{paddingBottom: "24px"}}>
         <div className="card ph2 in">
           <div className="av">
-            {"SK"}
+            {initials}
           </div>
           <div>
             <h1 style={{fontSize: "3.4rem"}}>
-              {"ShadowKira"}
+              {username}
             </h1>
             <p>
               <b>
@@ -160,7 +165,7 @@ export default function Profile() {
             </h2>
             <div className="card pad rv">
               <h3>
-                {"Winter Clash Valorant"}
+              {getTournamentById("winter-clash-valorant")?.name}
               </h3>
               <p>
                 {"Champions · ₹40,000 won"}
@@ -168,7 +173,7 @@ export default function Profile() {
             </div>
             <div className="card pad rv">
               <h3>
-                {"Mobile Mayhem BGMI"}
+              {getTournamentById("mobile-mayhem-bgmi")?.name}
               </h3>
               <p>
                 {"4th place · ₹15,000 won"}
@@ -176,7 +181,7 @@ export default function Profile() {
             </div>
             <div className="card pad rv">
               <h3>
-                {"Inferno Invitational"}
+              {getTournamentById("inferno-invitational")?.name}
               </h3>
               <p>
                 {"Quarterfinals in progress"}
