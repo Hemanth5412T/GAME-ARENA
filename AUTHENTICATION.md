@@ -1,6 +1,6 @@
 # Browser account authentication
 
-Accounts are stored in IndexedDB database `gameArenaAccounts`, object store `accounts` (key path `id`). Unique indexes enforce the lowercase `usernameNormalized` and `emailNormalized` values. Each account stores a PBKDF2-SHA-256 derived password hash, a random 16-byte salt, timestamps, and an active flag. Plaintext passwords are never persisted. The current tab's account ID is kept in `sessionStorage` under `gameArena.authUserId` and is checked against IndexedDB when the app starts.
+Accounts are stored in IndexedDB database `gameArenaAccounts`, object store `accounts` (key path `id`). Unique indexes enforce the lowercase `usernameNormalized` and `emailNormalized` values. Account records also include a stable ID, generated player ID, username, email, bio, creation/update timestamps, and active flag. Profile changes update the same record by ID; password changes replace only the stored PBKDF2-SHA-256 hash and random salt. Plaintext passwords are never persisted. The current tab's account ID is kept in `sessionStorage` under `gameArena.authUserId` and is checked against IndexedDB when the app starts.
 
 Passwords use Web Crypto PBKDF2 with SHA-256, 600,000 iterations, and a 256-bit result. The verifier compares derived bytes without an early exit.
 

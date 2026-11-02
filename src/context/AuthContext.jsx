@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { authenticateAccount, clearSessionUserId, createAccount, getAccountById, readSessionUserId, saveSessionUserId } from "../data/accountStore.js";
+import { authenticateAccount, changeAccountPassword, clearSessionUserId, createAccount, getAccountById, readSessionUserId, saveSessionUserId, updateAccountProfile } from "../data/accountStore.js";
 
 const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
@@ -23,6 +23,18 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({
     user, status,
     async register(values) { return createAccount(values); },
+    async updateProfile(values) {
+      if (!user?.id) return { ok: false, message: "Log in to edit your profile." };
+      const result = await updateAccountProfile(user.id, values);
+      if (result.ok) { setUser(result.user); window.dispatchEvent(new CustomEvent("gamearena:user-updated")); }
+      return result;
+    },
+    async changePassword(currentPassword, newPassword, confirmation) {
+      if (!user?.id) return { ok: false, message: "Log in to change your password." };
+      const result = await changeAccountPassword(user.id, currentPassword, newPassword, confirmation);
+      if (result.ok) { setUser(result.user); window.dispatchEvent(new CustomEvent("gamearena:user-updated")); }
+      return result;
+    },
     async login(identifier, password) {
       const result = await authenticateAccount(identifier, password);
       if (!result.ok) { if (result.unavailable) setStatus("unavailable"); return result; }

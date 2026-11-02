@@ -10,7 +10,7 @@ function fromBase64(value) { return Uint8Array.from(atob(value), (char) => char.
 function safeAccount(account) {
   if (!account) return null;
   const { passwordHash, passwordSalt, usernameNormalized, emailNormalized, ...safe } = account;
-  return safe;
+  return { ...safe, playerId: account.playerId || `GA-${String(account.id).replaceAll("-", "").slice(0, 8).toUpperCase()}` };
 }
 function openDatabase() {
   if (!globalThis.indexedDB || !globalThis.crypto?.subtle) return Promise.reject(new Error("Secure browser storage is unavailable."));
@@ -31,6 +31,10 @@ function requestValue(request) { return new Promise((resolve, reject) => { reque
 async function getByIndex(indexName, value) {
   const db = await openDatabase();
   return requestValue(db.transaction(STORE, "readonly").objectStore(STORE).index(indexName).get(value));
+}
+async function getStoredAccountById(id) {
+  const db = await openDatabase();
+  return requestValue(db.transaction(STORE, "readonly").objectStore(STORE).get(id));
 }
 async function hashPassword(password, salt) {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
@@ -57,7 +61,9 @@ export async function createAccount({ username, email, password }) {
     if (existingUsername || existingEmail) return { ok: false, fields: { ...(existingUsername ? { username: "That username is already registered." } : {}), ...(existingEmail ? { email: "That email is already registered." } : {}) }, message: "Please correct the highlighted fields." };
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const passwordHash = await hashPassword(password, salt);
-    const account = { id: crypto.randomUUID(), username: cleanUsername, email: normalizedEmail, usernameNormalized: normalizedUsername, emailNormalized: normalizedEmail, passwordSalt: toBase64(salt), passwordHash: toBase64(passwordHash), createdAt: new Date().toISOString(), isActive: true };
+    const now = new Date().toISOString();
+    const id = crypto.randomUUID();
+    const account = { id, playerId: `GA-${id.replaceAll("-", "").slice(0, 8).toUpperCase()}`, username: cleanUsername, email: normalizedEmail, usernameNormalized: normalizedUsername, emailNormalized: normalizedEmail, bio: "", passwordSalt: toBase64(salt), passwordHash: toBase64(passwordHash), createdAt: now, updatedAt: now, isActive: true };
     const db = await openDatabase();
     await requestValue(db.transaction(STORE, "readwrite").objectStore(STORE).add(account));
     return { ok: true, user: safeAccount(account) };
@@ -85,9 +91,93 @@ export async function authenticateAccount(identifier, password) {
 
 export async function getAccountById(id) {
   if (!id) return null;
-  const db = await openDatabase();
-  const account = await requestValue(db.transaction(STORE, "readonly").objectStore(STORE).get(id));
+  const account = await getStoredAccountById(id);
   return account?.isActive ? safeAccount(account) : null;
+}
+
+export async function updateAccountProfile(id, { username, bio }) {
+  const cleanUsername = String(username || "").trim();
+  const usernameNormalized = normalize(cleanUsername);
+  const cleanBio = String(bio ?? "").trim();
+  if (!validUsername(cleanUsername)) return { ok: false, reason: "invalid-username", message: "Use 3–24 letters, numbers, or underscores." };
+  if (cleanBio.length > 250) return { ok: false, reason: "bio-too-long", message: "Bio must be 250 characters or fewer." };
+  try {
+    const existing = await getStoredAccountById(id);
+    if (!existing?.isActive) return { ok: false, reason: "account-unavailable", message: "This account is no longer available." };
+    if (cleanUsername === existing.username && cleanBio === String(existing.bio || "")) return { ok: true, user: safeAccount(existing) };
+    if (usernameNormalized !== existing.usernameNormalized) {
+      if (await getByIndex("usernameNormalized", usernameNormalized)) return { ok: false, reason: "username-taken", message: "That username is already in use." };
+    }
+    const db = await openDatabase();
+    const updated = await new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE, "readwrite");
+      const store = transaction.objectStore(STORE);
+      let result;
+      let failure;
+      const request = store.get(id);
+      request.onsuccess = () => {
+        const current = request.result;
+        if (!current?.isActive) {
+          failure = new Error("This account is no longer available.");
+          transaction.abort();
+          return;
+        }
+        result = { ...current, username: cleanUsername, usernameNormalized, bio: cleanBio, updatedAt: new Date().toISOString() };
+        store.put(result);
+      };
+      transaction.oncomplete = () => resolve(result);
+      transaction.onabort = () => reject(failure || transaction.error || new Error("Could not save profile changes."));
+      transaction.onerror = () => reject(failure || transaction.error || new Error("Could not save profile changes."));
+    });
+    return { ok: true, user: safeAccount(updated) };
+  } catch (error) {
+    if (error?.name === "ConstraintError") return { ok: false, reason: "username-taken", message: "That username is already in use." };
+    if (error?.message === "This account is no longer available.") return { ok: false, reason: "account-unavailable", message: error.message };
+    return { ok: false, reason: "storage-unavailable", message: "Profile changes could not be saved. Please try again." };
+  }
+}
+
+export async function changeAccountPassword(id, currentPassword, newPassword, confirmation) {
+  if (!currentPassword || !newPassword || !confirmation) return { ok: false, reason: "missing-password", message: "Complete all three password fields." };
+  if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) return { ok: false, reason: "weak-password", message: "Use at least 8 characters with an uppercase letter, lowercase letter, and number." };
+  if (newPassword !== confirmation) return { ok: false, reason: "password-mismatch", message: "The new passwords do not match." };
+  if (newPassword === currentPassword) return { ok: false, reason: "same-password", message: "Choose a password different from your current one." };
+  try {
+    const account = await getStoredAccountById(id);
+    if (!account?.isActive) return { ok: false, reason: "account-unavailable", message: "This account is no longer available." };
+    const verified = equalBytes(await hashPassword(currentPassword, fromBase64(account.passwordSalt)), fromBase64(account.passwordHash));
+    if (!verified) return { ok: false, reason: "incorrect-current-password", message: "Current password is incorrect." };
+    const passwordSalt = toBase64(crypto.getRandomValues(new Uint8Array(16)));
+    const passwordHash = toBase64(await hashPassword(newPassword, fromBase64(passwordSalt)));
+    const updated = await new Promise((resolve, reject) => {
+      const dbPromise = openDatabase();
+      dbPromise.then((db) => {
+        const transaction = db.transaction(STORE, "readwrite");
+        const store = transaction.objectStore(STORE);
+        let result;
+        let failure;
+        const request = store.get(id);
+        request.onsuccess = () => {
+          const current = request.result;
+          if (!current?.isActive || current.passwordHash !== account.passwordHash || current.passwordSalt !== account.passwordSalt) {
+            failure = new Error("Account credentials changed while this update was being saved. Please try again.");
+            transaction.abort();
+            return;
+          }
+          result = { ...current, passwordSalt, passwordHash, updatedAt: new Date().toISOString() };
+          store.put(result);
+        };
+        transaction.oncomplete = () => resolve(result);
+        transaction.onabort = () => reject(failure || transaction.error || new Error("Could not update password."));
+        transaction.onerror = () => reject(failure || transaction.error || new Error("Could not update password."));
+      }).catch(reject);
+    });
+    return { ok: true, user: safeAccount(updated) };
+  } catch (error) {
+    if (error?.message?.startsWith("Account credentials changed")) return { ok: false, reason: "credentials-changed", message: error.message };
+    if (error?.message === "This account is no longer available.") return { ok: false, reason: "account-unavailable", message: error.message };
+    return { ok: false, reason: "storage-unavailable", message: "Password could not be updated. Please try again." };
+  }
 }
 
 export function readSessionUserId() { try { return sessionStorage.getItem(SESSION_KEY); } catch { return null; } }
