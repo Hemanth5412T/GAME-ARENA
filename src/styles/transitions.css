@@ -1,0 +1,129 @@
+#root { min-height: 100vh; }
+.card[hidden], tr[hidden] { display: none !important; }
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app-shell > .nav {
+  flex: 0 0 auto;
+  view-transition-name: app-nav;
+}
+
+.route-transition-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+}
+
+.route-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  backface-visibility: hidden;
+}
+
+.page-transition-surface { view-transition-name: route-page; }
+.route-screen.auth-route-screen { overflow: hidden; }
+.fallback-transition-layer { position: absolute; inset: 0; }
+.home-underlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  border: 0;
+  background: var(--b);
+  pointer-events: none;
+}
+
+.shared-tournament-art { view-transition-name: arena-masters-artwork; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(app-nav),
+::view-transition-new(app-nav) {
+  animation: none;
+}
+
+::view-transition-group(route-page) {
+  perspective: 1400px;
+}
+
+::view-transition-old(route-page) {
+  z-index: 2;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  animation: route-page-exit 520ms cubic-bezier(.77, 0, .175, 1) both;
+}
+
+::view-transition-new(route-page) {
+  z-index: 1;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  animation: route-page-enter 560ms cubic-bezier(.77, 0, .175, 1) both;
+}
+
+::view-transition-group(arena-masters-artwork) {
+  z-index: 3;
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes route-page-exit {
+  from { opacity: 1; transform: perspective(1400px) rotateY(0deg) scale(1) translateZ(0); }
+  to { opacity: 0; transform: perspective(1400px) rotateY(4deg) scale(.96) translateZ(-45px); }
+}
+
+@keyframes route-page-enter {
+  from { opacity: 0; transform: perspective(1400px) rotateY(-2deg) scale(.97) translateZ(-45px); }
+  to { opacity: 1; transform: perspective(1400px) rotateY(0deg) scale(1) translateZ(0); }
+}
+
+@media (max-width: 700px) {
+  .route-transition-stage { perspective: 900px; }
+  .route-screen { scrollbar-gutter: auto; }
+  ::view-transition-old(route-page) {
+    animation-name: route-page-exit-mobile;
+    animation-duration: 420ms;
+  }
+  ::view-transition-new(route-page) {
+    animation-name: route-page-enter-mobile;
+    animation-duration: 460ms;
+  }
+  @keyframes route-page-exit-mobile {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to { opacity: 0; transform: scale(.985) translateY(-8px); }
+  }
+  @keyframes route-page-enter-mobile {
+    from { opacity: 0; transform: scale(.99) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 1ms !important;
+  }
+}
