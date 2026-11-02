@@ -83,3 +83,174 @@
         font-size: 1.1rem
     }
 }
+
+/* Mobile navigation and route-wide layout safeguards. */
+.nav-menu-toggle {
+    display: none;
+}
+
+.nav .nav-register-item a {
+    color: var(--c);
+    font-weight: 800;
+}
+
+.nav .nav-mode-button,
+.nav .nav-auth-button,
+.nav-menu-toggle {
+    min-height: 44px;
+}
+
+@media (max-width: 900px) {
+    .w {
+        width: calc(100% - 32px);
+        min-width: 0;
+    }
+
+    .nav { z-index: 100; }
+    .nav .w {
+        position: relative;
+        width: calc(100% - 28px);
+        min-height: 64px;
+        flex-wrap: nowrap;
+        gap: 12px;
+    }
+
+    .nav .brand {
+        min-width: 0;
+        font-size: clamp(1.25rem, 5vw, 1.55rem);
+    }
+    .nav .brand img { flex: none; }
+
+    .nav-menu-toggle {
+        display: inline-grid;
+        place-items: center;
+        flex: none;
+        width: 46px;
+        border: 1px solid rgb(242 231 213 / 35%);
+        border-radius: 9px;
+        background: transparent;
+        color: var(--b);
+        font-size: 1.55rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .nav-menu-toggle:focus-visible,
+    .nav nav a:focus-visible,
+    .nav nav button:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+
+    .nav nav {
+        display: none;
+        position: absolute;
+        top: calc(100% - 1px);
+        left: 0;
+        right: 0;
+        z-index: 101;
+        width: auto;
+        max-height: calc(100dvh - 72px);
+        overflow: auto;
+        border: 1px solid rgb(242 231 213 / 14%);
+        border-radius: 0 0 14px 14px;
+        background: var(--n);
+        box-shadow: 0 18px 35px rgb(8 17 43 / 28%);
+    }
+    .nav nav.is-open { display: block; }
+    .nav nav ul {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        width: 100%;
+        padding: 10px 12px 14px;
+        list-style: none;
+    }
+    .nav nav li { min-width: 0; }
+    .nav nav li > a:not(.nav-auth-button),
+    .nav nav li > button {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 14px;
+        text-align: left;
+    }
+    .nav nav li > a:after { display: none; }
+    .nav .nav-mode-item { flex-wrap: wrap; gap: 6px; padding: 5px 0; }
+    .nav .nav-mode-item > * { flex: 1 1 100%; }
+    .nav .nav-mode-button { justify-content: flex-start; }
+    .nav .nav-register-item a {
+        min-height: 46px;
+        border-radius: 8px;
+        background: var(--c);
+        color: var(--n);
+        font-weight: 800;
+    }
+    .nav .nav-auth-item { padding: 5px 0 0; }
+    .nav .nav-auth-button { width: 100%; min-height: 46px; }
+    .nav .nav-auth-error { position: static; display: block; max-width: none; padding: 6px 12px; }
+
+    h1 { font-size: clamp(2.35rem, 10vw, 4.25rem); overflow-wrap: anywhere; }
+    h2 { font-size: clamp(1.8rem, 7vw, 2.5rem); }
+    h3 { font-size: clamp(1.25rem, 5.4vw, 1.6rem); overflow-wrap: anywhere; }
+
+    main, section, article, header, footer, form, .card, .ph, .ph2,
+    .hero .w, .two > *, .admin-section, .admin-row > * { min-width: 0; }
+    img, video, canvas, svg { max-width: 100%; }
+    p, small, time, label, .tag, .admin-row span { overflow-wrap: anywhere; }
+
+    .hero { padding-inline: 0; }
+    .hero .w, .two, .foot .fg { grid-template-columns: minmax(0, 1fr); }
+    .sh { align-items: flex-start; }
+    .two { gap: 20px; }
+    .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mr { align-items: flex-start; gap: 12px; padding: 16px; }
+    .mr h3 { min-width: 0; flex-basis: 100%; }
+    .btns { flex-wrap: wrap; }
+    .btns .btn { min-height: 44px; }
+
+    .admin-heading { align-items: flex-start; flex-direction: column; }
+    .admin-heading h1 { font-size: clamp(2.4rem, 10vw, 4rem); }
+    .admin-tabs { display: flex; flex-wrap: nowrap; max-width: 100%; overflow-x: auto; padding: 2px 2px 8px; }
+    .admin-tabs button { flex: 0 0 auto; min-height: 44px; }
+    .admin-form-grid { grid-template-columns: minmax(0, 1fr); }
+    .admin-form-grid .wide { grid-column: auto; }
+    .admin-filters { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .admin-filters input, .admin-filters select { width: 100%; min-height: 44px; }
+    .admin-row { align-items: flex-start; flex-direction: column; }
+    .admin-row > div:first-child { width: 100%; }
+    .admin-actions { width: 100%; }
+    .admin-actions .btn { min-height: 44px; }
+    .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .ph2 { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; padding: 18px; }
+    .ph2 > div:not(.av) { flex: 1 1 calc(100% - 76px); }
+    .ph2 h1 { font-size: clamp(2.2rem, 9vw, 3rem) !important; }
+    .ph2 > .btn { width: 100%; min-height: 44px; }
+    .profile-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .profile-stat-card { flex-basis: auto; min-width: 0; padding: 20px; }
+    .profile-stat-card b { font-size: clamp(2rem, 9vw, 3rem); }
+    .registered-tournament-actions { align-items: stretch; flex-wrap: wrap; }
+    .registered-tournament-actions > * { min-height: 44px; }
+    .unregister-confirm-dialog { width: min(100% - 28px, 520px); max-height: calc(100dvh - 28px); overflow-y: auto; }
+    .unregister-confirm-actions { flex-wrap: wrap; }
+    .unregister-confirm-actions .btn { flex: 1 1 100%; min-height: 44px; }
+
+    .tw { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+    table { min-width: 640px; }
+    .bn.big { height: clamp(190px, 58vw, 280px); }
+    .bn.big:after { font-size: clamp(3.2rem, 16vw, 5.5rem); left: 18px; }
+    .foot .fg { gap: 24px; }
+}
+
+@media (max-width: 380px) {
+    .w { width: calc(100% - 24px); }
+    .nav .w { width: calc(100% - 20px); }
+    .nav .brand { gap: 7px; font-size: 1.2rem; }
+    .nav .brand img { width: 34px; height: 34px; }
+    .nav-menu-toggle { width: 42px; min-height: 42px; }
+    .meta, .admin-stat-grid, .profile-stats { grid-template-columns: minmax(0, 1fr); }
+    .pad { padding: 17px; }
+    .st { padding: 20px; }
+    .au > aside { padding: 20px 16px; }
+    .au > main { padding: 20px 12px 30px; }
+    .fm.auth-card { padding: 21px 17px; }
+}
