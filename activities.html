@@ -39,43 +39,48 @@
             </div>
             <section style="padding-top:24px">
                 <div class="g" style="margin-bottom:48px">
-                    <div class="st lt rv"><b>24</b>Matches this month</div>
-                    <div class="st lt rv"><b>16</b>Wins this month</div>
-                    <div class="st lt rv"><b>3</b>Tournaments joined</div>
-                    <div class="st lt rv"><b>2</b>New badges</div>
+                    <div class="st lt rv activity-stat"><b data-activity-stat="matches">0</b>Matches this month</div>
+                    <div class="st lt rv activity-stat"><b data-activity-stat="wins">0</b>Wins this month</div>
+                    <div class="st lt rv activity-stat"><b data-activity-stat="tournaments">0</b>Tournaments joined</div>
+                    <div class="st lt rv activity-stat"><b data-activity-stat="badges">0</b>New badges</div>
                 </div>
-                <div class="tlw">
-                    <div class="ti rv">
+                <section class="registered-tournaments" aria-labelledby="registered-tournaments-title">
+                    <div class="sh">
+                        <h2 id="registered-tournaments-title">Registered tournaments</h2>
+                    </div>
+                    <div id="registered-tournament-list" class="g"></div>
+                    <div id="registered-tournament-empty" class="registered-empty card pad">
+                        <h3>No tournament registrations yet.</h3>
+                        <p>Explore upcoming tournaments and register to compete.</p>
+                        <a class="btn p sm" href="search-events.html">Explore tournaments</a>
+                    </div>
+                </section>
+                <div class="tlw" id="activity-timeline">
+                    <div class="ti rv" data-activity-type="match" data-match-result="win" data-activity-at="2026-11-01T10:42:00+05:30">
                         <div class="card pad"><time>1 Nov 2026 · 10:42 AM</time>
                             <h3>Won vs Orion Gaming</h3>
                             <p class="win">Valorant · 13–9 on Ascent</p>
                         </div>
                     </div>
-                    <div class="ti rv">
-                        <div class="card pad"><time>31 Oct 2026 · 8:15 PM</time>
-                            <h3>Joined Inferno Invitational</h3>
-                            <p class="win">CS2 · Entry fee ₹250 paid</p>
-                        </div>
-                    </div>
-                    <div class="ti rv">
+                    <div class="ti rv" data-activity-type="match" data-match-result="loss" data-activity-at="2026-10-28T21:05:00+05:30">
                         <div class="card pad"><time>28 Oct 2026 · 9:05 PM</time>
                             <h3>Lost vs Titan Squad</h3>
                             <p class="loss">Valorant · 10–13 on Bind</p>
                         </div>
                     </div>
-                    <div class="ti rv">
+                    <div class="ti rv" data-activity-type="badge" data-activity-at="2026-10-25T18:30:00+05:30">
                         <div class="card pad"><time>25 Oct 2026 · 6:30 PM</time>
                             <h3>Badge unlocked: Clutch Master</h3>
                             <p class="win">Achievement</p>
                         </div>
                     </div>
-                    <div class="ti rv">
+                    <div class="ti rv" data-activity-type="tournament-result" data-activity-at="2026-10-20T23:20:00+05:30">
                         <div class="card pad"><time>20 Oct 2026 · 11:20 PM</time>
                             <h3>Champions of Winter Clash Valorant</h3>
                             <p class="win">Tournament result · ₹40,000 won</p>
                         </div>
                     </div>
-                    <div class="ti rv">
+                    <div class="ti rv" data-activity-type="tournament-result" data-activity-at="2026-10-12T19:00:00+05:30">
                         <div class="card pad"><time>12 Oct 2026 · 7:00 PM</time>
                             <h3>Placed 4th in Mobile Mayhem BGMI</h3>
                             <p class="win">Tournament result · ₹15,000 won</p>
@@ -107,6 +112,8 @@
             </div><small>Frontend prototype. All players, teams, scores and prizes are sample data.</small>
         </div>
     </footer>
+    <script src="js/game-arena-data.js" defer></script>
+    <script src="js/activities.js" defer></script>
 </body>
 
 </html>

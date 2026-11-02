@@ -3,9 +3,11 @@
     const forms = [...document.querySelectorAll(".auth-form")];
     const heading = document.querySelector("#auth-heading");
     const emblem = document.querySelector(".auth-brand img");
+    const homeFrame = document.querySelector(".home-underlay");
     const duration = 800;
+    const homeRevealDuration = 1050;
 
-    if (!page.classList.contains("au") || forms.length !== 2 || !heading || !emblem) return;
+    if (!page.classList.contains("au") || forms.length !== 2 || !heading || !emblem || !homeFrame) return;
 
     const path = window.location.pathname.toLowerCase();
     const entryMode = path.endsWith("login.html")
@@ -23,6 +25,10 @@
     let registrationSubmitButton;
     let registrationSuccess;
     let registrationSuccessCopy;
+    let loginProcessing = false;
+    let loginAckTimer;
+    let homeRevealTimer;
+    let homeReady = false;
 
     const headingCopy = {
         login: "Back in the arena.",
@@ -43,7 +49,7 @@
     }
 
     function switchMode(nextMode, isRegistrationAutoSwitch = false) {
-        if (transitioning || nextMode === mode || (registrationInProgress && !isRegistrationAutoSwitch)) return false;
+        if (transitioning || loginProcessing || nextMode === mode || (registrationInProgress && !isRegistrationAutoSwitch)) return false;
 
         transitioning = true;
         page.dataset.transitioning = "true";
@@ -74,6 +80,111 @@
 
     render(mode);
     patternTimer = window.setTimeout(() => page.classList.add("pattern-visible"), 80);
+
+    function prepareHomeFrame() {
+        homeReady = true;
+        try {
+            const frameDocument = homeFrame.contentDocument;
+            if (frameDocument?.head && !frameDocument.querySelector("base[data-auth-home-target]")) {
+                const base = frameDocument.createElement("base");
+                base.target = "_top";
+                base.dataset.authHomeTarget = "true";
+                frameDocument.head.prepend(base);
+            }
+        } catch {
+            // The frame still displays the Home page; this only preserves top-level link navigation.
+        }
+    }
+
+    try {
+        if (homeFrame.dataset.ready === "true" || homeFrame.contentDocument?.readyState === "complete") prepareHomeFrame();
+    } catch {
+        // The load event below is sufficient when local-file origins are isolated by the browser.
+    }
+    homeFrame.addEventListener("load", prepareHomeFrame);
+
+    function revealHome() {
+        if (!homeReady) {
+            homeFrame.addEventListener("load", revealHome, { once: true });
+            return;
+        }
+        page.classList.remove("pattern-visible");
+        page.classList.add("auth-home-reveal");
+        window.clearTimeout(homeRevealTimer);
+        homeRevealTimer = window.setTimeout(() => {
+            page.classList.add("auth-home-active");
+            homeFrame.removeAttribute("aria-hidden");
+            homeFrame.removeAttribute("tabindex");
+            try {
+                window.history.replaceState({ gameArenaHome: true }, "", "index.html");
+            } catch {
+                // file:// contexts may not permit changing the top-level URL with History API.
+            }
+            document.querySelectorAll(".login-success").forEach((feedback) => feedback.classList.remove("is-visible"));
+            loginProcessing = false;
+        }, homeRevealDuration);
+    }
+
+    document.querySelectorAll('form[data-form="login"]').forEach((form) => {
+        const identifier = form.querySelector('[name="username"]');
+        const password = form.querySelector('[name="password"]');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const feedback = form.querySelector(".login-success");
+        const idError = form.querySelector("#login-identifier-error");
+        const passwordError = form.querySelector("#login-password-error");
+
+        function showFieldError(input, errorElement, message) {
+            input.closest(".fld").classList.toggle("has-error", Boolean(message));
+            input.setAttribute("aria-invalid", String(Boolean(message)));
+            errorElement.textContent = message;
+        }
+
+        [identifier, password].forEach((input) => {
+            input.addEventListener("input", () => {
+                if (loginProcessing) return;
+                feedback.classList.remove("is-visible");
+                showFieldError(input, input === identifier ? idError : passwordError, "");
+            });
+        });
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (loginProcessing) return;
+
+            feedback.classList.remove("is-visible");
+            identifier.value = identifier.value.trim();
+            const accountKnown = ["demo@gamearena.gg", "shadowkira"].includes(identifier.value.toLowerCase());
+            const idMessage = !identifier.value
+                ? "Enter your email or username."
+                : !accountKnown
+                    ? "No demo account matches this email or username."
+                    : "";
+            const passwordMessage = !password.value
+                ? "Enter your password."
+                : accountKnown && password.value !== "Arena@2026"
+                    ? "The password does not match the demo account."
+                    : "";
+
+            showFieldError(identifier, idError, idMessage);
+            showFieldError(password, passwordError, passwordMessage);
+            if (idMessage || passwordMessage) {
+                (idMessage ? identifier : password).focus();
+                return;
+            }
+
+            if (!window.GameArenaData?.setCurrentUser({ id: "demo@gamearena.gg", username: "ShadowKira" })) {
+                showFieldError(identifier, idError, "Could not save the demo login in this browser. Enable local storage and try again.");
+                identifier.focus();
+                return;
+            }
+
+            loginProcessing = true;
+            submitButton.disabled = true;
+            feedback.classList.add("is-visible");
+            window.clearTimeout(loginAckTimer);
+            loginAckTimer = window.setTimeout(revealHome, 300);
+        });
+    });
 
     document.querySelectorAll("[data-switch]").forEach((link) => {
         link.addEventListener("click", (event) => {

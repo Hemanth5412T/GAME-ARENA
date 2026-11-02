@@ -167,8 +167,32 @@
     justify-content: end;
     min-height: 200px;
     padding: 24px;
-    background: var(--n);
+    background-color: var(--n);
     color: var(--b)
+}
+
+.gt.game-valorant {
+    background-image:
+        linear-gradient(180deg, #192a5633 0%, #192a5670 45%, #192a56ed 100%),
+        url("../assets/images/popular-valorant.png");
+    background-size: cover;
+    background-position: center
+}
+
+.gt.game-bgmi {
+    background-image:
+        linear-gradient(180deg, #192a5633 0%, #192a5670 45%, #192a56ed 100%),
+        url("../assets/images/popular-bgmi.png");
+    background-size: cover;
+    background-position: center
+}
+
+.gt.game-cs2 {
+    background-image:
+        linear-gradient(180deg, #192a5633 0%, #192a5670 45%, #192a56ed 100%),
+        url("../assets/images/popular-cs2.png");
+    background-size: cover;
+    background-position: center
 }
 
 .gt:before {
@@ -247,6 +271,71 @@
 .st.lt:hover {
     background: var(--n);
     color: var(--b)
+}
+
+.activity-stat {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate
+}
+
+.activity-stat::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: -1;
+    height: 0;
+    background: var(--n);
+    transition: height .5s var(--e)
+}
+
+.activity-stat:hover::before {
+    height: 100%
+}
+
+.activity-stat.st.lt:hover {
+    background: var(--w);
+    color: var(--b)
+}
+
+.profile-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center
+}
+
+.profile-stat-card {
+    position: relative;
+    flex: 0 1 calc(33.333% - 16px);
+    min-width: 290px;
+    overflow: hidden;
+    isolation: isolate
+}
+
+.profile-stat-card::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: -1;
+    height: 0;
+    background: var(--n);
+    transition: height .5s var(--e)
+}
+
+.profile-stat-card:hover::before {
+    height: 100%
+}
+
+.profile-stat-card.st.lt:hover {
+    background: var(--w);
+    color: var(--b)
+}
+
+@media (max-width: 480px) {
+    .profile-stat-card {
+        flex-basis: 100%;
+        min-width: 0
+    }
 }
 
 .tw {
@@ -656,3 +745,77 @@ main:has(#g-c:checked) .grp:not(:has(.gc)) {
     font: 800 3rem/1 var(--d);
     display: block
 }
+
+.registered-tournaments {
+    padding: 0 0 48px
+}
+
+.registered-tournament-card {
+    display: grid;
+    align-content: start;
+    gap: 16px
+}
+
+.registered-tournament-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.registered-tournament-header h3 {
+    flex: 1;
+    min-width: 180px
+}
+
+.registered-tournament-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 14px;
+    font-size: .9rem
+}
+
+.registered-tournament-meta b {
+    display: block;
+    font-size: .78rem;
+    opacity: .7
+}
+
+.registration-status-badge {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: .76rem;
+    font-weight: 700
+}
+
+.status-registered { background: #1d6b4320; color: #1d6b43 }
+.status-upcoming { background: #eda6a355; color: var(--n) }
+.status-live { background: var(--n); color: var(--c) }
+.status-completed { background: #192a5618; color: var(--n) }
+.status-cancelled { background: #a33; color: var(--w) }
+
+.registered-tournament-link { justify-self: start }
+
+.registered-empty {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    text-align: center
+}
+
+.registered-empty[hidden] { display: none }
+
+.registration-feedback {
+    display: none;
+    margin-top: 12px;
+    font-size: .9rem;
+    line-height: 1.45
+}
+
+.registration-feedback:not(:empty) { display: block }
+.registration-feedback-error { color: #ffd0cc }
+.registration-feedback a { font-weight: 700; text-decoration: underline }

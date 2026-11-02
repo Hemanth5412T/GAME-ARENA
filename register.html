@@ -17,6 +17,7 @@
 </head>
 
 <body class="au" data-mode="register">
+    <iframe class="home-underlay" src="index.html" title="GAME ARENA Home" aria-hidden="true" tabindex="-1" onload="this.dataset.ready='true'"></iframe>
     <aside>
         <div class="shape s1"></div>
         <div class="auth-branding">
@@ -46,19 +47,21 @@
             <p class="form-success" role="status" aria-live="polite"><span class="success-check" aria-hidden="true">✓</span><span><strong data-success-copy></strong><small>Demo only. Your details are not stored.</small></span></p>
             <p class="alt"><a class="auth-switch" href="login.html" data-switch="login">Log in</a></p>
         </form>
-        <form class="fm auth-card auth-form" data-form="login" action="profile.html" method="get" aria-hidden="true" inert>
+        <form class="fm auth-card auth-form" data-form="login" action="profile.html" method="get" aria-hidden="true" inert novalidate>
             <h2>Log in</h2>
             <p>Welcome back. Pick up where you left off.</p>
             <div class="demo"><b>Demo account</b><br>Email: demo@gamearena.gg<br>Password: Arena@2026</div>
-            <label class="fld">Email or username<input type="text" required pattern="demo@gamearena\.gg|ShadowKira"
-                    title="Use the demo account: demo@gamearena.gg" autocomplete="username" placeholder="demo@gamearena.gg"></label>
-            <label class="fld">Password<div class="password-control"><input id="login-password" type="password" required pattern="Arena@2026"
-                    title="Use the demo password: Arena@2026" autocomplete="current-password" placeholder="Your password"><button class="toggle-password" type="button" data-password-toggle aria-label="Show password" aria-controls="login-password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="m4 4 16 16"></path></svg></button></div></label>
+            <label class="fld">Email or username<input id="login-identifier" name="username" type="text" required pattern="demo@gamearena\.gg|ShadowKira"
+                    title="Use the demo account: demo@gamearena.gg" autocomplete="username" placeholder="demo@gamearena.gg" aria-describedby="login-identifier-error"><small class="form-error" id="login-identifier-error"></small></label>
+            <label class="fld">Password<div class="password-control"><input id="login-password" name="password" type="password" required pattern="Arena@2026"
+                    title="Use the demo password: Arena@2026" autocomplete="current-password" placeholder="Your password" aria-describedby="login-password-error"><button class="toggle-password" type="button" data-password-toggle aria-label="Show password" aria-controls="login-password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7S18.4 19 12 19 2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="m4 4 16 16"></path></svg></button></div><small class="form-error" id="login-password-error"></small></label>
             <div class="row"><label><input type="checkbox"> Remember me</label><a href="mailto:support@gamearena.gg">Forgot password?</a></div>
             <button class="btn p" type="submit">Log in</button>
+            <p class="form-success login-success" role="status" aria-live="polite"><span class="success-check" aria-hidden="true">✓</span><span><strong>Login successful. Opening GAME ARENA…</strong></span></p>
             <p class="alt"><a class="auth-switch" href="register.html" data-switch="register">Create an account</a></p>
         </form>
     </main>
+    <script src="js/game-arena-data.js" defer></script>
     <script src="js/auth.js" defer></script>
 </body>
 
