@@ -47,6 +47,7 @@ export default function AuthPage({ initialMode }) {
 
   function changeMode(nextMode, isRegistrationAutoSwitch = false) {
     if (switching || (registrationBusy && !isRegistrationAutoSwitch) || nextMode === mode || homeRevealing) return;
+    window.scrollTo({ top: 0, behavior: "instant" });
     setSwitching(true);
     setPatternVisible(false);
     const nextSpin = nextMode === "login" ? "spin-counterclockwise" : "spin-clockwise";

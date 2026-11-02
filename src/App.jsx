@@ -16,6 +16,29 @@ const titles = {
   "/": "Home", "/live": "Live", "/leaderboard": "Leaderboard", "/search-events": "Tournaments",
   "/profile": "Profile", "/activities": "Activities", "/login": "Login", "/register": "Register",
 };
+const navbarIndices = {
+  "/": 0,
+  "/live": 1,
+  "/leaderboard": 2,
+  "/search-events": 3,
+  "/profile": 4,
+  "/activities": 5,
+  "/login": -1,
+  "/register": -1,
+};
+
+function navbarIndex(pathname) {
+  if (pathname.startsWith("/tournament/")) return navbarIndices["/search-events"];
+  return navbarIndices[pathname] ?? 0;
+}
+
+function getTransitionDirections(sourcePath, destinationPath) {
+  const movingRight = navbarIndex(destinationPath) > navbarIndex(sourcePath);
+  const backOutDirection = movingRight ? "left" : "right";
+  const backInDirection = backOutDirection === "left" ? "right" : "left";
+
+  return { backOutDirection, backInDirection };
+}
 
 function isAuthPath(pathname) {
   return pathname === "/login" || pathname === "/register";
@@ -49,10 +72,20 @@ function MotionRoutes() {
   const scrollPositions = useRef(new Map());
   const screenRef = useRef(null);
   const previousKey = useRef(location.key);
+  const previousPath = useRef(location.pathname);
+  const transitionDirections = getTransitionDirections(previousPath.current, location.pathname);
+  const { backOutDirection, backInDirection } = transitionDirections;
   const skipTransition = Boolean(location.state?.skipPageTransition);
   const authMode = isAuthPath(location.pathname);
 
   useLayoutEffect(() => {
+    if (previousPath.current !== location.pathname) {
+      const root = document.documentElement;
+
+      root.dataset.backOutDirection = transitionDirections.backOutDirection;
+      root.dataset.backInDirection = transitionDirections.backInDirection;
+      previousPath.current = location.pathname;
+    }
     if (previousKey.current !== location.key) {
       const savedScroll = scrollPositions.current.get(location.key);
       if (screenRef.current) {
@@ -60,7 +93,7 @@ function MotionRoutes() {
       }
       previousKey.current = location.key;
     }
-  }, [location.key, navigationType]);
+  }, [location.key, location.pathname, navigationType, transitionDirections]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 700px)");
@@ -76,16 +109,16 @@ function MotionRoutes() {
 
   const routeElements = <RouteContent location={location} />;
   const fallbackVariants = {
-    enter: reducedMotion ? { opacity: 0 } : { opacity: 0, scale: mobileViewport ? 1 : 0.97, rotateY: mobileViewport ? 0 : -2, z: -35 },
+    enter: reducedMotion ? { opacity: 0 } : { opacity: 0, scale: mobileViewport ? 1 : 0.97, rotateY: mobileViewport ? 0 : (backInDirection === "right" ? -2 : 2), x: mobileViewport ? (backInDirection === "right" ? 14 : -14) : (backInDirection === "right" ? 24 : -24), z: -35 },
     center: { opacity: 1, scale: 1, rotateY: 0, z: 0 },
-    exit: reducedMotion ? { opacity: 0 } : { opacity: 0, scale: mobileViewport ? 1 : 0.96, rotateY: mobileViewport ? 0 : 4, z: -45 },
+    exit: reducedMotion ? { opacity: 0 } : { opacity: 0, scale: mobileViewport ? 1 : 0.96, rotateY: mobileViewport ? 0 : (backOutDirection === "left" ? 4 : -4), x: mobileViewport ? (backOutDirection === "left" ? -14 : 14) : (backOutDirection === "left" ? -24 : 24), z: -45 },
   };
   const fallbackTransition = reducedMotion
     ? { duration: 0.12, ease: "easeOut" }
     : { duration: mobileViewport ? 0.38 : 0.5, ease: [0.77, 0, 0.175, 1] };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${authMode ? " auth-app-shell" : ""}`}>
       {!authMode && <MainNav />}
       <div className={`route-transition-stage${authMode ? " auth-transition-stage" : ""}`}>
         {supportsViewTransitions ? (
